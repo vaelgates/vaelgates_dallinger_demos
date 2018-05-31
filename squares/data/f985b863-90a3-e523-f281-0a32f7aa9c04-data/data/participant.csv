@@ -1,0 +1,4 @@
+id,creation_time,property1,property2,property3,property4,property5,failed,time_of_death,details,type,fingerprint_hash,recruiter_id,worker_id,assignment_id,unique_id,hit_id,mode,end_time,base_pay,bonus,status
+1,2018-05-30 21:09:23.013622,,,,,,f,,{},participant,undefined,mturk,1,3XM0HYN6NLS0KM48B4DTHPUH76CPEH,1:3XM0HYN6NLS0KM48B4DTHPUH76CPEH,3WPCIUYH1A1QXOLL6O5SRXHDM26DTN,undefined,2018-05-30 21:21:40.642302,,,abandoned
+2,2018-05-30 21:30:16.786279,,,,,,f,,{},participant,undefined,mturk,2,3AMW0RGHOEV4ESHL43GC7COQLYDPN6,2:3AMW0RGHOEV4ESHL43GC7COQLYDPN6,3WPCIUYH1A1QXOLL6O5SRXHDM26DTN,undefined,2018-05-30 21:33:07.592961,1,0.3,approved
+3,2018-05-30 21:35:04.577862,,,,,,f,,{},participant,c8c2cc8b7ff8b684eaf001311391a775,mturk,3,3UWN2HHPUZY1RKXDWKK62HT18IKNSK,3:3UWN2HHPUZY1RKXDWKK62HT18IKNSK,3WPCIUYH1A1QXOLL6O5SRXHDM26DTN,undefined,2018-05-30 21:37:04.210358,1,0.3,approved

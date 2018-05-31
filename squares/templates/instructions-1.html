@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    <div class="main_div">
+        <h1>Instructions</h1>
+
+        <hr>
+
+            <p>In this game, you will play 12 rounds of a game, each round with a different partner. In each game, you will see the goal pattern you are trying to complete, and the main 3x3 grid. Your task is to take turns choosing squares in the main grid with your partner until you complete the goal pattern. </p>
+            <img src="/static/images/instructions_pic.png" alt="Screenshot of Squares Game" class="center"/>
+            <p><b> However, ONLY YOU can see the goal pattern.</b> Your partner will try to help you, but can only guess what the goal pattern is from the squares you choose. You will always go first.</p>
+            <p>There is no time limit to complete the pattern: you choose a square, then wait for your partner to choose a square, then you can choose a square again, etc. Your partner will be different for each round. You will receive a bonus that decreases based on the number of mistakes you and your partner make.</p>
+
+        <hr>
+
+        <div>
+            <div class="row">
+                <div class="col-xs-10"></div>
+                <div class="col-xs-2">
+                    <button type="button" class="btn btn-success btn-lg" onClick="dallinger.allowExit(); dallinger.goToPage('instructions-2');">
+                    Begin</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+

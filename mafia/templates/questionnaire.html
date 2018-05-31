@@ -1,0 +1,82 @@
+{% extends "base/questionnaire.html" %}
+{% block replace_questions %}
+          <div class="row question">
+            <div class="col-md-8">
+              How many times have you played any version of Mafia?
+            </div>
+            <div class="col-md-4">
+              <select id="expertise" name="expertise">
+                <option value="0">Never</option>
+                <option value="1">1-2 times</option>
+                <option value="2">3-10 times</option>
+                <option value="3">More than 10 times</option>
+              </select>
+            </div>
+          </div>
+          <br>
+          <div class="row question">
+            <div class="col-md-8">
+              On a scale of 1-10 (where 10 is the most engaged), please rate how <b>ENGAGED</b> you were while performing the task:
+            </div>
+            <div class="col-md-4">
+              <select id="engagement" name="engagement">
+                <option value="10">10 - Very engaged</option>
+                <option value="9">9</option>
+                <option value="8">8</option>
+                <option value="7">7</option>
+                <option value="6">6</option>
+                <option value="5" SELECTED>5 - Moderately engaged</option>
+                <option value="4">4</option>
+                <option value="3">3</option>
+                <option value="2">2</option>
+                <option value="1">1 - Not engaged</option>
+              </select>
+            </div>
+          </div>
+          <div class="row question">
+            <div class="col-md-8">
+              On a scale of 1-10 (where 10 is the most difficult), please rate how <b>DIFFICULT</b> you found the task:
+            </div>
+            <div class="col-md-4">
+              <select id="difficulty" name="difficulty">
+                <option value="10">10 - Very difficult</option>
+                <option value="9">9</option>
+                <option value="8">8</option>
+                <option value="7">7</option>
+                <option value="6">6</option>
+                <option value="5" SELECTED>5 - Moderate</option>
+                <option value="4">4</option>
+                <option value="3">3</option>
+                <option value="2">2</option>
+                <option value="1">1 - Very easy</option>
+              </select>
+            </div>
+          </div>
+          <div class="row question">
+          <br>
+            <div class="col-md-8">
+              If you were a bystander, what clues did you use to identify the mafia? If you were a mafioso, what strategies did you use to avoid suspicion?
+            </div>
+            <div class="col-md-8">
+              <input type="text" name="comparisonbox" id="comparisonbox" size="60">
+            </div>
+          </div>
+          <div class="row question">
+          <br>
+            <div class="col-md-8">
+              If applicable, how did this version of Mafia compare to your past experiences with the game?
+            </div>
+            <div class="col-md-8">
+              <input type="text" name="comparisonbox" id="comparisonbox" size="60">
+            </div>
+          </div>
+          <div class="row question">
+          <br>
+            <div class="col-md-8">
+              Comments?
+            </div>
+            <div class="col-md-8">
+              <input type="text" name="commentbox" id="commentbox" size="60">
+            </div>
+          </div>
+{% endblock %}
