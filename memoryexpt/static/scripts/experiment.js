@@ -94,7 +94,7 @@ showFillerTask = function() {
     function() {
       showExperiment();
     },
-    200//30000 MONICA
+    30000
   );
 };
 

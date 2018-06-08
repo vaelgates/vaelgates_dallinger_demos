@@ -16,8 +16,8 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         """Initialize the experiment."""
         super(CoordinationChatroom, self).__init__(session)
         self.experiment_repeats = 1
-        self.num_participants = 2 #55 #55 #140 below
-        self.initial_recruitment_size = self.num_participants * 1 #note: can't do *2.5 here, won't run even if the end result is an integer
+        self.num_participants = 4 #55 #55 #140 below
+        self.initial_recruitment_size = 6 #self.num_participants * 1 #note: can't do *2.5 here, won't run even if the end result is an integer
         self.quorum = self.num_participants
         if session:
             self.setup()
@@ -243,7 +243,7 @@ class FreeRecallListSource(Source):
             # they have different UUIDs.
             random.seed(UUID)
             # sample 60 words from large word list without replacement
-            expt_wordlist = random.sample(wordlist, 1) #MONICA
+            expt_wordlist = random.sample(wordlist, 5) #MONICA
 
             ### shuffle wordlist for each participant
             random.seed()  # an actually random seed
