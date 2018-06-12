@@ -104,7 +104,7 @@ showExperiment = function() {
   $("#send-message").removeClass("disabled");
   $("#send-message").html("Send");
   $("#reproduction").focus();
-  get_transmissions();
+//  get_transmissions();
 };
 
 get_transmissions = function() {
