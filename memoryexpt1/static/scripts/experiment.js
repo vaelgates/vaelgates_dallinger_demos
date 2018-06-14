@@ -89,10 +89,22 @@ showWordList = function(wl) {
 showFillerTask = function() {
   $("#stimulus").hide();
   $("#fillertask-form").show();
+  var filler_answers = []
 
   setTimeout(
     function() {
-      showExperiment();
+      // store results of filler tasks in array
+      $('#fillertask-form input').each( function( i, item ) {
+        filler_answers.push('{' + item.name + ': ' + item.value + '}');
+      });
+      // stores all filler answers in the contents column of info table
+      dallinger.createInfo(
+        currentNodeId,
+        {contents: filler_answers.join(", "), info_type: "Info"}
+      ).done(function(resp) {
+        showExperiment();
+      });
+
     },
     30000
   );
@@ -104,7 +116,7 @@ showExperiment = function() {
   $("#send-message").removeClass("disabled");
   $("#send-message").html("Send");
   $("#reproduction").focus();
-  get_transmissions();
+//  get_transmissions();
 };
 
 get_transmissions = function() {
