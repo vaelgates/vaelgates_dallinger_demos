@@ -15,7 +15,7 @@ $(document).ready(function() {
     store.set("mode", dallinger.getUrlParameter("mode"));
 
     dallinger.allowExit();
-    window.location.href = '/instructions';
+    dallinger.goToPage('instructions');
   });
 
   // Do not consent to the experiment.
@@ -27,7 +27,7 @@ $(document).ready(function() {
   // Proceed to the waiting room.
   $("#go-to-waiting-room").click(function() {
     dallinger.allowExit();
-    window.location.href = '/waiting';
+    dallinger.goToPage('waiting');
   });
 
   // Send a message.
