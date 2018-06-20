@@ -92,11 +92,10 @@
 
     // Create the agent.
     function startPlayer() {
-        var deferred = dallinger.createAgent();
-        deferred.then(function (resp) {
+        dallinger.createAgent().done(function (resp) {
             currentNodeId = resp.node.id;
             getWordList();
-        }, function (rejection) {
+        }).fail(function (rejection) {
             console.log(rejection);
             if (rejection.html) {
                 $("body").html(rejection.html);
