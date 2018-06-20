@@ -85,7 +85,7 @@
             go.questionnaire();
         });
 
-        if ($("body#experiment").length > 0) {
+        if ($("#experiment").length > 0) {
             startPlayer();
         }
     });
