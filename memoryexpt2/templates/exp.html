@@ -10,7 +10,7 @@
         <link rel="stylesheet" type="text/css" href="static/css/bootstrap.min.css">
         <link rel="stylesheet" type="text/css" href="static/css/dallinger.css">
     </head>
-    <body>
+    <body id="experiment">
         <div class="main_div">
             <div id="stimulus">
                 <div><h1 id="wordlist"></h1></div>
@@ -69,13 +69,10 @@
                 </div>
                 <input type="text" id="reproduction" class="form-control" />
                 <button id="send-message" type="button" class="btn btn-primary">Send.</button>
-                <button id="leave-chat" type="button" class="btn" onClick="leave_chatroom();">I can't recall any more</button>
+                <button id="leave-chat" type="button" class="btn">I can't recall any more</button>
             </div>
 
             <br>
         </div>
-        <script>
-            create_agent();
-        </script>
     </body>
 </html>
