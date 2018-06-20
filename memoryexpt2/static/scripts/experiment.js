@@ -2,7 +2,6 @@
 
 (function ($, dallinger, store) {
 
-    var uniqueWords = [];
     var currentNodeId;
     // var FILLER_TASK_DURATION_MSECS = 30000
     // var WORD_DISPLAY_DURATION_MSECS = 2000
@@ -27,6 +26,28 @@
             dallinger.allowExit();
             dallinger.goToPage("questionnaire");
         }
+    };
+    var uniqueWords = {
+        _words: [],
+        add: function (word) {
+            word = word.toLowerCase().trim();
+            // No empty words
+            if (word.length === 0) {
+                return false;
+            }
+            // No words with spaces
+            if (word.indexOf(" ") !== -1) {
+                return false;
+            }
+            // No non-unique words
+            if (this._words.indexOf(word) !== -1) {
+                return false;
+            }
+
+            this._words.push(word);
+            return word;
+        }
+
     };
 
     $(document).ready(function() {
@@ -56,7 +77,7 @@
 
         // Send a message.
         $("#send-message").click(function() {
-            send_message();
+            sendMessage();
         });
 
         // Leave the chatroom.
@@ -173,33 +194,19 @@
         });
     }
 
-    function send_message() {
-        var response = $("#reproduction").val();
-        // typing box
-        // don't let people submit an empty response
-        if (response.length === 0) {
+    function sendMessage() {
+        // #reproduction is the typing box
+        var newWord = uniqueWords.add($("#reproduction").val());
+        if (! newWord) {
             return;
         }
-
-        // let people submit only if word doesn't have a space
-        if (response.indexOf(" ") >= 0) {
-            return;
-        }
-
-        // will not let you add a word that is non-unique
-        if (uniqueWords.indexOf(response.toLowerCase()) === -1) {
-            uniqueWords.push(response.toLowerCase());
-            $("#reply").append("<p style='color: #1693A5;'>" + response.toLowerCase() + "</p>"); //MONICA
-        } else {
-            return; // don't let people submit if non-unique
-        }
-
+        $("#reply").append("<p style='color: #1693A5;'>" + newWord + "</p>"); //MONICA
         $("#reproduction").val("");
         $("#reproduction").focus();
 
         dallinger.createInfo(
             currentNodeId,
-            {contents: response, info_type: "Info"}
+            {contents: newWord, info_type: "Info"}
         ).done(function(resp) {
             $("#send-message").removeClass("disabled");
             $("#send-message").html("Send");
