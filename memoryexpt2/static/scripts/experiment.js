@@ -77,7 +77,7 @@
 
         // Send a message.
         $("#send-message").click(function() {
-            sendMessage();
+            checkAndSendWord();
         });
 
         // Leave the chatroom.
@@ -86,13 +86,12 @@
         });
 
         if ($("body#experiment").length > 0) {
-            console.log("OK to create agent.");
-            create_agent();
+            startPlayer();
         }
     });
 
     // Create the agent.
-    function create_agent() {
+    function startPlayer() {
         var deferred = dallinger.createAgent();
         deferred.then(function (resp) {
             currentNodeId = resp.node.id;
@@ -162,10 +161,10 @@
         $("#send-message").removeClass("disabled");
         $("#send-message").html("Send");
         $("#reproduction").focus();
-        get_transmissions();
+        // getTransmissions();
     }
 
-    function get_transmissions() {
+    function getTransmissions() {
         dallinger.getTransmissions(
             currentNodeId,
             {status: "pending"}
@@ -176,7 +175,7 @@
                 displayInfo(transmissions[i].info_id);
             }
             setTimeout(function () {
-                get_transmissions(currentNodeId);
+                getTransmissions(currentNodeId);
             },
             FETCH_TRANSMISSION_FREQUENCY_MSECS);
         });
@@ -194,7 +193,7 @@
         });
     }
 
-    function sendMessage() {
+    function checkAndSendWord() {
         // #reproduction is the typing box
         var newWord = uniqueWords.add($("#reproduction").val());
         if (! newWord) {
