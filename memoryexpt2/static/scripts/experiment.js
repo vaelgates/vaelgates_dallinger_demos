@@ -10,6 +10,24 @@
     var FILLER_TASK_DURATION_MSECS = 3000;
     var WORD_DISPLAY_DURATION_MSECS = 1000;
     var FETCH_TRANSMISSION_FREQUENCY_MSECS = 100;
+    var go = {
+        leave: function () {
+            dallinger.allowExit();
+            self.close();
+        },
+        waitingRoom: function () {
+            dallinger.allowExit();
+            dallinger.goToPage("waiting");
+        },
+        instructions: function () {
+            dallinger.allowExit();
+            dallinger.goToPage("instructions");
+        },
+        questionnaire: function () {
+            dallinger.allowExit();
+            dallinger.goToPage("questionnaire");
+        }
+    };
 
     $(document).ready(function() {
         // Print the consent form.
@@ -23,21 +41,17 @@
             store.set("worker_id", dallinger.getUrlParameter("worker_id"));
             store.set("assignment_id", dallinger.getUrlParameter("assignment_id"));
             store.set("mode", dallinger.getUrlParameter("mode"));
-
-            dallinger.allowExit();
-            dallinger.goToPage("instructions");
+            go.instructions();
         });
 
         // Do not consent to the experiment.
         $("#no-consent").click(function() {
-            dallinger.allowExit();
-            self.close();
+            go.leave();
         });
 
         // Proceed to the waiting room.
         $("#go-to-waiting-room").click(function() {
-            dallinger.allowExit();
-            dallinger.goToPage("waiting");
+            go.waitingRoom();
         });
 
         // Send a message.
@@ -47,7 +61,7 @@
 
         // Leave the chatroom.
         $("#leave-chat").click(function() {
-            leave_chatroom();
+            go.questionnaire();
         });
 
         if ($("body#experiment").length > 0) {
@@ -67,8 +81,7 @@
             if (rejection.html) {
                 $("body").html(rejection.html);
             } else {
-                dallinger.allowExit();
-                dallinger.goToPage("questionnaire");
+                go.questionnaire();
             }
         });
     }
@@ -191,11 +204,6 @@
             $("#send-message").removeClass("disabled");
             $("#send-message").html("Send");
         });
-    }
-
-    function leave_chatroom() {
-        dallinger.allowExit();
-        dallinger.goToPage("questionnaire");
     }
 
     $(document).keypress(function(e) {
