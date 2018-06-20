@@ -8,7 +8,7 @@
     // var FETCH_TRANSMISSION_FREQUENCY_MSECS = 100
     var FILLER_TASK_DURATION_MSECS = 3000;
     var WORD_DISPLAY_DURATION_MSECS = 1000;
-    var FETCH_TRANSMISSION_FREQUENCY_MSECS = 100;
+    var FETCH_TRANSMISSION_FREQUENCY_MSECS = 3000;
     var go = {
         leave: function () {
             dallinger.allowExit();
@@ -161,7 +161,7 @@
         $("#send-message").removeClass("disabled");
         $("#send-message").html("Send");
         $("#reproduction").focus();
-        // getTransmissions();
+        getTransmissions();
     }
 
     function getTransmissions() {
@@ -182,13 +182,12 @@
     }
 
     function displayInfo(infoId) {
-        dallinger.getInfo(currentNodeId, infoId
+        dallinger.getInfo(
+            currentNodeId, infoId
         ).done(function(resp) {
-            var word = resp.info.contents.toLowerCase();
-            // if word hasn't appeared before, load into unique array and display
-            if (uniqueWords.indexOf(word) === -1) {
-                uniqueWords.push(word);
-                $("#reply").append("<p>" + word + "</p>");
+            var newWord = uniqueWords.add(resp.info.contents);
+            if (newWord) {
+                $("#reply").append("<p>" + newWord + "</p>");
             }
         });
     }
