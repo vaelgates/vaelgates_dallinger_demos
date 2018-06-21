@@ -1,26 +1,96 @@
+import gevent
 import json
+import logging
 import random
 
 import dallinger as dlgr
 from dallinger import db
+from dallinger.heroku.worker import conn as redis
 from dallinger.models import Node, Network, timenow
 from dallinger.networks import Empty
 from dallinger.networks import FullyConnected
 from dallinger.nodes import Source
 
 
+logger = logging.getLogger(__file__)
+
+
 class CoordinationChatroom(dlgr.experiments.Experiment):
     """Define the structure of the experiment."""
+
+    channel = 'memoryexpt2_ctrl'
 
     def __init__(self, session):
         """Initialize the experiment."""
         super(CoordinationChatroom, self).__init__(session)
         self.experiment_repeats = 1
-        self.num_participants = 4 #55 #55 #140 below
-        self.initial_recruitment_size = 6 #self.num_participants * 1 #note: can't do *2.5 here, won't run even if the end result is an integer
+        self.num_participants = 2 #55 #55 #140 below
+        self.initial_recruitment_size = 2 #self.num_participants * 1 #note: can't do *2.5 here, won't run even if the end result is an integer
         self.quorum = self.num_participants
+        self._players = []
         if session:
             self.setup()
+
+    @property
+    def background_tasks(self):
+        return [
+            self.send_turn_update,
+        ]
+
+    def handle_connect(self, msg):
+        player_id = msg['player_id']
+        if player_id not in self._players:
+            self._players.append(player_id)
+        logger.info("Client {} has connected.".format(player_id))
+        logger.info(self._players)
+
+    def handle_disconnect(self, msg):
+        logger.info('Client {} has disconnected.'.format(msg['player_id']))
+
+    def send_turn_update(self):
+        """Publish the current state of the grid and game"""
+
+        gevent.sleep(1.00)
+        current_player_idx = 0
+        while True:
+            logger.info("Sending turn update...")
+            gevent.sleep(5.0)
+            if not self._players:
+                continue
+            current_player_idx = (current_player_idx + 1) % len(self._players)
+            current_turn_player = self._players[current_player_idx]
+            message = {
+                'type': 'change_of_turn',
+                'player_id': current_turn_player,
+            }
+            logger.info("Really sending it..")
+            self.publish(message)
+
+    def publish(self, msg):
+        """Publish a message to all memoryexpt2 clients"""
+        redis.publish('memoryexpt2', json.dumps(msg))
+
+    def send(self, raw_message):
+        """Socket interface; point of entry for incoming messages.
+
+        param raw_message is a string with a channel prefix, for example:
+
+            'memoryexpt2_ctrl:{"type":"move","player_id":0,"move":"left"}'
+        """
+        mapping = {
+            'connect': self.handle_connect,
+            'disconnect': self.handle_disconnect,
+        }
+        if raw_message.startswith(self.channel + ":"):
+            logger.info("We received a message for our channel: {}".format(
+                raw_message))
+            body = raw_message.replace(self.channel + ":", "")
+            msg = json.loads(body)
+            if msg['type'] in mapping:
+                mapping[msg['type']](msg)
+        else:
+            logger.info("Received a message, but not our channel: {}".format(
+                raw_message))
 
     def setup(self):
         """Setup the networks.
@@ -212,7 +282,7 @@ class FreeRecallListSource(Source):
         """
 
         #CODE FOR INDIVIDUAL EXPTS
-        #(samples 60 words from the big wordlist for each participant) 
+        #(samples 60 words from the big wordlist for each participant)
         # wordlist = "groupwordlist.md"
         # with open("static/stimuli/{}".format(wordlist), "r") as f:
         #    wordlist = f.read().splitlines()
@@ -221,7 +291,7 @@ class FreeRecallListSource(Source):
 
 
         # CODE FOR GROUP EXPTS
-        # (has one word list for the experiment 
+        # (has one word list for the experiment
         # (draw 60 words from "groupwordlist.md") then
         # reshuffles the words within each participant
 
@@ -250,9 +320,9 @@ class FreeRecallListSource(Source):
             random.shuffle(expt_wordlist)
             return json.dumps(expt_wordlist)
 
-        # OLD: 
+        # OLD:
         # shuffles all words
-        #wordlist = "60words.md" 
+        #wordlist = "60words.md"
         #with open("static/stimuli/{}".format(wordlist), "r") as f:
         #    wordlist = f.read().splitlines()
         #    return json.dumps(random.sample(wordlist,60))
