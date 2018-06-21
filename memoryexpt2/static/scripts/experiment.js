@@ -12,10 +12,6 @@
     var WORD_DISPLAY_DURATION_MSECS = 1000;
     var FETCH_TRANSMISSION_FREQUENCY_MSECS = 3000;
     var go = {
-        waitingRoom: function () {
-            dallinger.allowExit();
-            dallinger.goToPage("waiting");
-        },
         questionnaire: function () {
             dallinger.allowExit();
             dallinger.goToPage("questionnaire");
@@ -129,11 +125,6 @@
     }());
 
     $(document).ready(function() {
-
-        // Proceed to the waiting room.
-        $("#go-to-waiting-room").click(function() {
-            go.waitingRoom();
-        });
 
         // Send a message.
         $("#send-message").click(function() {
