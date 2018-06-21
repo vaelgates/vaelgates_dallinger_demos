@@ -4,7 +4,6 @@
 
     var currentNodeId;
     var currentPlayerId;
-    var egoParticipantId;
     // var FILLER_TASK_DURATION_MSECS = 30000
     // var WORD_DISPLAY_DURATION_MSECS = 2000
     // var FETCH_TRANSMISSION_FREQUENCY_MSECS = 100
@@ -38,6 +37,81 @@
             return word;
         }
     };
+
+    var WordSubmission = (function () {
+
+        /**
+         * Tracks turns and handles canditate word submissions.
+         */
+        var WordSubmission = function (settings) {
+            if (!(this instanceof WordSubmission)) {
+                return new WordSubmission(settings);
+            }
+            this.egoID = settings.egoID;
+            this._enabled = false;
+            this.$button = $("#send-message");
+            this.$input = $("#reproduction");
+            this._bindEvents();
+        };
+
+        WordSubmission.prototype.checkAndSendWord = function () {
+            if (! this._enabled) {
+                return;
+            }
+            var self = this;
+            var newWord = uniqueWords.add(self.$input.val());
+            if (! newWord) {
+                return;
+            }
+            $("#reply").append("<p style='color: #1693A5;'>" + newWord + "</p>");
+            self.$input.val("");
+            self.$input.focus();
+
+            dallinger.createInfo(
+                currentNodeId,
+                {contents: newWord, info_type: "Info"}
+            ).done(function(resp) {
+                self.$button.removeClass("disabled");
+                self.$button.html("Send");
+            });
+        };
+
+        WordSubmission.prototype.changeOfTurn = function (msg) {
+            currentPlayerId = msg.player_id;
+            if (currentPlayerId === this.egoID) {
+                console.log("It's our turn.");
+                this._enable();
+            } else {
+                console.log("It's not our turn.");
+                this._disable();
+            }
+        };
+
+        WordSubmission.prototype._bindEvents = function () {
+            var self = this;
+            $(document).keypress(function(e) {
+                if (e.which === 13) {
+                    self.$button.click();
+                    return false;
+                }
+            });
+            self.$button.click(function() {
+                self.checkAndSendWord();
+            });
+        };
+
+        WordSubmission.prototype._disable = function () {
+            this._enabled = false;
+            this.$button.attr("disabled", true);
+        };
+
+        WordSubmission.prototype._enable = function () {
+            this._enabled = true;
+            this.$button.attr("disabled", false);
+        };
+
+        return WordSubmission;
+    }());
 
     var ServerSocket = (function () {
         var makeSocket = function (endpoint, channel, tolerance) {
@@ -79,7 +153,6 @@
             }
 
             var self = this,
-                isOpen = $.Deferred(),
                 tolerance = typeof(settings.lagTolerance) !== "undefined" ? settings.lagTolerance : 0.1;
 
             this.broadcastChannel = settings.broadcast;
@@ -126,49 +199,35 @@
 
     $(document).ready(function() {
 
-        // Send a message.
-        $("#send-message").click(function() {
-            checkAndSendWord();
-        });
+        var egoParticipantId = dallinger.getUrlParameter("participant_id"),
+            wordSubmission = new WordSubmission({egoID: egoParticipantId}),
+            callbackMap = {
+                "new_word": newWordAdded,
+                "change_of_turn": function (msg) { wordSubmission.changeOfTurn(msg); },
+            };
 
         // Leave the chatroom.
         $("#leave-chat").click(function() {
             go.questionnaire();
         });
 
-        if ($("#experiment").length > 0) {
-            egoParticipantId = dallinger.getUrlParameter("participant_id");
-            console.log("Starting socket with participantID " + egoParticipantId);
-            startSocket(egoParticipantId);
-            startPlayer();
-        }
+        ;
+        console.log("Starting socket with participantID " + egoParticipantId);
+        startSocket(egoParticipantId, callbackMap);
+        startPlayer();
     });
 
     function newWordAdded(msg) {
         console.log("Message is: " + msg);
     }
 
-    function changeOfTurn(msg) {
-        console.log("Message is: " + msg);
-        currentPlayerId = msg.player_id;
-        if (currentPlayerId === egoParticipantId) {
-            $("#send-message").attr("disabled", false);
-        } else {
-            $("#send-message").attr("disabled", true);
-        }
-        console.log("Updated turn to " + currentPlayerId);
-    }
-
-    function startSocket(player_id) {
+    function startSocket(playerID, callbackMap) {
         var socketSettings = {
             "endpoint": "chat",
             "broadcast": "memoryexpt2",
             "control": "memoryexpt2_ctrl",
             "lagTolerance": 0.001,
-            "callbackMap": {
-                "new_word": newWordAdded,
-                "change_of_turn": changeOfTurn,
-            }
+            "callbackMap": callbackMap
         };
         var socket = new ServerSocket(socketSettings);
 
@@ -176,7 +235,7 @@
             function () {
                 var data = {
                     type: "connect",
-                    player_id: player_id
+                    player_id: playerID
                 };
                 socket.send(data);
             }
@@ -281,31 +340,5 @@
             }
         });
     }
-
-    function checkAndSendWord() {
-        // #reproduction is the typing box
-        var newWord = uniqueWords.add($("#reproduction").val());
-        if (! newWord) {
-            return;
-        }
-        $("#reply").append("<p style='color: #1693A5;'>" + newWord + "</p>"); //MONICA
-        $("#reproduction").val("");
-        $("#reproduction").focus();
-
-        dallinger.createInfo(
-            currentNodeId,
-            {contents: newWord, info_type: "Info"}
-        ).done(function(resp) {
-            $("#send-message").removeClass("disabled");
-            $("#send-message").html("Send");
-        });
-    }
-
-    $(document).keypress(function(e) {
-        if (e.which === 13) {
-            $("#send-message").click();
-            return false;
-        }
-    });
 
 }($, dallinger, ReconnectingWebSocket));
