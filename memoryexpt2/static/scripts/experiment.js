@@ -1,6 +1,6 @@
-/*global $, dallinger, ReconnectingWebSocket, store */
+/*global $, dallinger, ReconnectingWebSocket */
 
-(function ($, dallinger, ReconnectingWebSocket, store) {
+(function ($, dallinger, ReconnectingWebSocket) {
 
     var currentNodeId;
     var currentPlayerId;
@@ -12,17 +12,9 @@
     var WORD_DISPLAY_DURATION_MSECS = 1000;
     var FETCH_TRANSMISSION_FREQUENCY_MSECS = 3000;
     var go = {
-        leave: function () {
-            dallinger.allowExit();
-            self.close();
-        },
         waitingRoom: function () {
             dallinger.allowExit();
             dallinger.goToPage("waiting");
-        },
-        instructions: function () {
-            dallinger.allowExit();
-            dallinger.goToPage("instructions");
         },
         questionnaire: function () {
             dallinger.allowExit();
@@ -137,24 +129,6 @@
     }());
 
     $(document).ready(function() {
-        // Print the consent form.
-        $("#print-consent").click(function() {
-            window.print();
-        });
-
-        // Consent to the experiment.
-        $("#consent").click(function() {
-            store.set("hit_id", dallinger.getUrlParameter("hit_id"));
-            store.set("worker_id", dallinger.getUrlParameter("worker_id"));
-            store.set("assignment_id", dallinger.getUrlParameter("assignment_id"));
-            store.set("mode", dallinger.getUrlParameter("mode"));
-            go.instructions();
-        });
-
-        // Do not consent to the experiment.
-        $("#no-consent").click(function() {
-            go.leave();
-        });
 
         // Proceed to the waiting room.
         $("#go-to-waiting-room").click(function() {
@@ -343,4 +317,4 @@
         }
     });
 
-}($, dallinger, ReconnectingWebSocket, store));
+}($, dallinger, ReconnectingWebSocket));
