@@ -16,7 +16,7 @@ from dallinger.nodes import Source
 logger = logging.getLogger(__file__)
 
 
-class Timer(object):
+class Turn(object):
 
     def __init__(self):
         self.start = time.time()
@@ -28,7 +28,7 @@ class Timer(object):
         return age > self.timeout_secs
 
 
-class ExpiredTimer(object):
+class ExpiredTurn(object):
 
     is_expired = True
 
@@ -49,6 +49,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         self.initial_recruitment_size = 2 #self.num_participants * 1 #note: can't do *2.5 here, won't run even if the end result is an integer
         self.quorum = self.num_participants
         self._players = []
+        self._turn = ExpiredTurn()
         if session:
             self.setup()
 
@@ -70,21 +71,34 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
 
     def handle_word_added(self, msg):
         logger.info("The server knows a word was added!")
-        self._timer = ExpiredTimer()
+        self.end_turn()
+
+
+    def end_turn(self):
+        self._turn = ExpiredTurn()
+
+    def new_turn(self):
+        self._turn = Turn()
+
+    @property
+    def turn_is_over(self):
+        return self._turn.is_expired
+
+    @property
+    def all_players_have_joined(self):
+        return len(self._players) == self.num_participants
 
     def game_loop(self):
         """Publish the current state of the grid and game"""
         gevent.sleep(1.00)
         current_player_idx = 0
-        self._timer = ExpiredTimer()
         while True:
             gevent.sleep(0.1)
-            if not len(self._players) == self.num_participants:
+            if not self.all_players_have_joined:
                 continue
-            if not self._timer.is_expired:
-                continue
-            current_player_idx = self.change_player(current_player_idx)
-            self._timer = Timer()
+            if self.turn_is_over:
+                current_player_idx = self.change_player(current_player_idx)
+                self.new_turn()
 
     def change_player(self, current_player_idx):
         current_player_idx = (current_player_idx + 1) % len(self._players)
