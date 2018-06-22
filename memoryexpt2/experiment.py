@@ -2,6 +2,7 @@ import gevent
 import json
 import logging
 import random
+import time
 
 import dallinger as dlgr
 from dallinger import db
@@ -13,6 +14,26 @@ from dallinger.nodes import Source
 
 
 logger = logging.getLogger(__file__)
+
+
+class Timer(object):
+
+    def __init__(self):
+        self.start = time.time()
+        self.timeout_secs = 8.0
+
+    @property
+    def is_expired(self):
+        age = time.time() - self.start
+        return age > self.timeout_secs
+
+
+class ExpiredTimer(object):
+
+    is_expired = True
+
+    def __init__(self):
+        pass
 
 
 class CoordinationChatroom(dlgr.experiments.Experiment):
@@ -34,7 +55,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
     @property
     def background_tasks(self):
         return [
-            self.send_turn_update,
+            self.game_loop,
         ]
 
     def handle_connect(self, msg):
@@ -49,23 +70,32 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
 
     def handle_word_added(self, msg):
         logger.info("The server knows a word was added!")
+        self._timer = ExpiredTimer()
 
-    def send_turn_update(self):
+    def game_loop(self):
         """Publish the current state of the grid and game"""
         gevent.sleep(1.00)
         current_player_idx = 0
+        self._timer = ExpiredTimer()
         while True:
-            gevent.sleep(5.0)
-            if not len(self._players) > 1:
+            gevent.sleep(0.1)
+            if not len(self._players) == self.num_participants:
                 continue
-            current_player_idx = (current_player_idx + 1) % len(self._players)
-            current_turn_player = self._players[current_player_idx]
-            message = {
-                'type': 'change_of_turn',
-                'player_id': current_turn_player,
-            }
-            logger.info("Sending turn update...")
-            self.publish(message)
+            if not self._timer.is_expired:
+                continue
+            current_player_idx = self.change_player(current_player_idx)
+            self._timer = Timer()
+
+    def change_player(self, current_player_idx):
+        current_player_idx = (current_player_idx + 1) % len(self._players)
+        current_turn_player = self._players[current_player_idx]
+        message = {
+            'type': 'change_of_turn',
+            'player_id': current_turn_player,
+        }
+        logger.info("Sending turn update...")
+        self.publish(message)
+        return current_player_idx
 
     def publish(self, msg):
         """Publish a message to all memoryexpt2 clients"""
@@ -111,7 +141,6 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         """Create a new network by reading the configuration file."""
         #return Empty(max_size=self.num_participants + 1)  # add a Source
         return FullyConnected(max_size=self.num_participants + 1)  # add a Source
-
 
     def bonus(self, participant):
         """Give the participant a bonus for waiting."""
