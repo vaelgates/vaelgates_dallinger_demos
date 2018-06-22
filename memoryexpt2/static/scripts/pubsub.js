@@ -1,6 +1,6 @@
-/*global ReconnectingWebSocket */
+/*global $, ReconnectingWebSocket */
 
-var pubsub = (function (ReconnectingWebSocket) {
+var pubsub = (function ($, ReconnectingWebSocket) {
 
     var backend = {};
 
@@ -92,4 +92,4 @@ var pubsub = (function (ReconnectingWebSocket) {
     return backend;
 
 
-}(ReconnectingWebSocket));
+}($, ReconnectingWebSocket));
