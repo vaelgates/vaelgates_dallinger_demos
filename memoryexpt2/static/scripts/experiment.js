@@ -48,10 +48,12 @@
                 return new WordSubmission(settings);
             }
             this.egoID = settings.egoID;
+            this.socket = settings.socket;
             this._enabled = false;
             this.$button = $("#send-message");
             this.$input = $("#reproduction");
             this._bindEvents();
+            this.socket.subscribe(this.changeOfTurn, "change_of_turn", this);
         };
 
         WordSubmission.prototype.checkAndSendWord = function () {
@@ -116,37 +118,28 @@
     $(document).ready(function() {
 
         var egoParticipantId = dallinger.getUrlParameter("participant_id"),
-            wordSubmission = new WordSubmission({egoID: egoParticipantId}),
-            callbackMap = {
-                "new_word": newWordAdded,
-                "change_of_turn": function (msg) { wordSubmission.changeOfTurn(msg); },
-            };
+            wordSubmission,
+            socket;
 
         // Leave the chatroom.
         $("#leave-chat").click(function() {
             go.questionnaire();
         });
-
-        ;
         console.log("Starting socket with participantID " + egoParticipantId);
-        startSocket(egoParticipantId, callbackMap);
+        socket = startSocket(egoParticipantId);
+        wordSubmission = new WordSubmission(
+            {egoID: egoParticipantId, socket: socket}
+        );
         startPlayer();
     });
 
-    function newWordAdded(msg) {
-        console.log("Message is: " + msg);
-    }
-
-    function startSocket(playerID, callbackMap) {
+    function startSocket(playerID) {
         var socketSettings = {
             "endpoint": "chat",
             "broadcast": "memoryexpt2",
             "control": "memoryexpt2_ctrl",
-            "lagTolerance": 0.001,
-            "callbackMap": callbackMap
         };
         var socket = pubsub.Socket(socketSettings);
-
         socket.open().done(
             function () {
                 var data = {
@@ -156,6 +149,7 @@
                 socket.send(data);
             }
         );
+        return socket;
     }
     // Create the agent.
     function startPlayer() {
