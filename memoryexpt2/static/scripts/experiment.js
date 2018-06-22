@@ -113,7 +113,7 @@
             });
             self.$passButton.click(function() {
                 self.skipTurn();
-            })
+            });
         };
 
         WordSubmission.prototype._disable = function () {
@@ -134,15 +134,13 @@
     $(document).ready(function() {
 
         var egoParticipantId = dallinger.getUrlParameter("participant_id"),
-            wordSubmission,
-            socket;
+            socket = startSocket(egoParticipantId),
+            wordSubmission;
 
         // Leave the chatroom.
         $("#leave-chat").click(function() {
             go.questionnaire();
         });
-        console.log("Starting socket with participantID " + egoParticipantId);
-        socket = startSocket(egoParticipantId);
         wordSubmission = new WordSubmission(
             {egoID: egoParticipantId, socket: socket}
         );
