@@ -50,7 +50,8 @@
             this.egoID = settings.egoID;
             this.socket = settings.socket;
             this._enabled = false;
-            this.$button = $("#send-message");
+            this.$sendButton = $("#send-message");
+            this.$passButton = $("#skip-turn");
             this.$input = $("#reproduction");
             this._bindEvents();
             this.socket.subscribe(this.changeOfTurn, "change_of_turn", this);
@@ -81,6 +82,13 @@
             });
         };
 
+        WordSubmission.prototype.skipTurn = function () {
+            var msg = {
+                type: "skip_turn",
+            };
+            this.socket.send(msg);
+        };
+
         WordSubmission.prototype.changeOfTurn = function (msg) {
             currentPlayerId = msg.player_id;
             if (currentPlayerId === this.egoID) {
@@ -96,23 +104,28 @@
             var self = this;
             $(document).keypress(function(e) {
                 if (e.which === 13) {
-                    self.$button.click();
+                    self.$sendButton.click();
                     return false;
                 }
             });
-            self.$button.click(function() {
+            self.$sendButton.click(function() {
                 self.checkAndSendWord();
             });
+            self.$passButton.click(function() {
+                self.skipTurn();
+            })
         };
 
         WordSubmission.prototype._disable = function () {
             this._enabled = false;
-            this.$button.attr("disabled", true);
+            this.$sendButton.attr("disabled", true);
+            this.$passButton.attr("disabled", true);
         };
 
         WordSubmission.prototype._enable = function () {
             this._enabled = true;
-            this.$button.attr("disabled", false);
+            this.$sendButton.attr("disabled", false);
+            this.$passButton.attr("disabled", false);
         };
 
         return WordSubmission;

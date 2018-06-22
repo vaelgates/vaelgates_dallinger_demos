@@ -73,6 +73,9 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         logger.info("The server knows a word was added!")
         self.end_turn()
 
+    def handle_skip_turn(self, msg):
+        logger.info("The server learned about a skip of turn.")
+        self.end_turn()
 
     def end_turn(self):
         self._turn = ExpiredTurn()
@@ -126,6 +129,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
             'connect': self.handle_connect,
             'disconnect': self.handle_disconnect,
             'word_added': self.handle_word_added,
+            'skip_turn': self.handle_skip_turn,
         }
         if raw_message.startswith(self.channel + ":"):
             logger.info("We received a message for our channel: {}".format(
