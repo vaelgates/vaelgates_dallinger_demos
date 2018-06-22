@@ -47,15 +47,16 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
     def handle_disconnect(self, msg):
         logger.info('Client {} has disconnected.'.format(msg['player_id']))
 
+    def handle_word_added(self, msg):
+        logger.info("The server knows a word was added!")
+
     def send_turn_update(self):
         """Publish the current state of the grid and game"""
-
         gevent.sleep(1.00)
         current_player_idx = 0
         while True:
-            logger.info("Sending turn update...")
             gevent.sleep(5.0)
-            if not self._players:
+            if not len(self._players) > 1:
                 continue
             current_player_idx = (current_player_idx + 1) % len(self._players)
             current_turn_player = self._players[current_player_idx]
@@ -63,7 +64,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
                 'type': 'change_of_turn',
                 'player_id': current_turn_player,
             }
-            logger.info("Really sending it..")
+            logger.info("Sending turn update...")
             self.publish(message)
 
     def publish(self, msg):
@@ -80,6 +81,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         mapping = {
             'connect': self.handle_connect,
             'disconnect': self.handle_disconnect,
+            'word_added': self.handle_word_added,
         }
         if raw_message.startswith(self.channel + ":"):
             logger.info("We received a message for our channel: {}".format(

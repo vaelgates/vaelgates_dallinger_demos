@@ -73,8 +73,11 @@
                 currentNodeId,
                 {contents: newWord, info_type: "Info"}
             ).done(function(resp) {
-                self.$button.removeClass("disabled");
-                self.$button.html("Send");
+                var msg = {
+                    type: "word_added",
+                };
+                self.socket.send(msg);
+                self._enable();
             });
         };
 
