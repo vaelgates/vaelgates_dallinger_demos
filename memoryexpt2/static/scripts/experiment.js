@@ -82,6 +82,7 @@
             this._enabled = false;
             this.$sendButton = $("#send-message");
             this.$passButton = $("#skip-turn");
+            this.$finishedButton = $("#leave-chat");
             this.$input = $("#reproduction");
             this._bindEvents();
             this.socket.subscribe(this.changeOfTurn, "change_of_turn", this);
@@ -144,6 +145,10 @@
             self.$passButton.click(function() {
                 self.skipTurn();
             });
+            self.$finishedButton.click(function () {
+                dallinger.allowExit();
+                dallinger.goToPage("questionnaire");
+            });
         };
 
         WordSubmission.prototype._disable = function () {
@@ -165,12 +170,6 @@
 
         var egoParticipantId = dallinger.getUrlParameter("participant_id"),
             socket = startSocket(egoParticipantId);
-
-        // Allow participant to call it quits.
-        $("#leave-chat").click(function() {
-            dallinger.allowExit();
-            dallinger.goToPage("questionnaire");
-        });
 
         new RecallDisplay({egoID: egoParticipantId, socket: socket});
         new WordSubmission({egoID: egoParticipantId, socket: socket});
