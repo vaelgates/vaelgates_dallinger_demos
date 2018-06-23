@@ -10,12 +10,7 @@
     var FILLER_TASK_DURATION_MSECS = 3000;
     var WORD_DISPLAY_DURATION_MSECS = 1000;
     var FETCH_TRANSMISSION_FREQUENCY_MSECS = 3000;
-    var go = {
-        questionnaire: function () {
-            dallinger.allowExit();
-            dallinger.goToPage("questionnaire");
-        }
-    };
+
     var uniqueWords = {
         _words: [],
         add: function (word) {
@@ -139,7 +134,8 @@
 
         // Leave the chatroom.
         $("#leave-chat").click(function() {
-            go.questionnaire();
+            dallinger.allowExit();
+            dallinger.goToPage("questionnaire");
         });
         wordSubmission = new WordSubmission(
             {egoID: egoParticipantId, socket: socket}
