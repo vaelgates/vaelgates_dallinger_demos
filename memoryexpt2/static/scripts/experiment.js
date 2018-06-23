@@ -6,7 +6,6 @@
     var currentPlayerId;
     // var FILLER_TASK_DURATION_MSECS = 30000
     // var WORD_DISPLAY_DURATION_MSECS = 2000
-    // var FETCH_TRANSMISSION_FREQUENCY_MSECS = 100
     var FILLER_TASK_DURATION_MSECS = 3000;
     var WORD_DISPLAY_DURATION_MSECS = 1000;
 
@@ -32,26 +31,27 @@
         }
     };
 
-    var WordDisplay = (function () {
+    var RecallDisplay = (function () {
 
         /**
          * Displays the list of unique recalled words.
          */
-        var WordDisplay = function (settings) {
-            if (!(this instanceof WordDisplay)) {
-                return new WordDisplay(settings);
+        var RecallDisplay = function (settings) {
+            if (!(this instanceof RecallDisplay)) {
+                return new RecallDisplay(settings);
             }
             this.socket = settings.socket;
             this.$wordList = $("#reply");
             this.socket.subscribe(this.updateWordList, "word_added", this);
         };
 
-        WordDisplay.prototype.updateWordList = function (msg) {
             this.$wordList.append("<p style='color: #1693A5;'>" + msg.word + "</p>");
+        RecallDisplay.prototype.updateWordList = function (msg) {
         };
 
 
         return WordDisplay;
+        return RecallDisplay;
     }());
 
     var WordSubmission = (function () {
@@ -152,7 +152,7 @@
 
         var egoParticipantId = dallinger.getUrlParameter("participant_id"),
             socket = startSocket(egoParticipantId),
-            wordDisplay = new WordDisplay({socket: socket}),
+            recallDisplay = new RecallDisplay(
             wordSubmission = new WordSubmission(
                 {egoID: egoParticipantId, socket: socket}
             );
