@@ -9,7 +9,6 @@
     // var FETCH_TRANSMISSION_FREQUENCY_MSECS = 100
     var FILLER_TASK_DURATION_MSECS = 3000;
     var WORD_DISPLAY_DURATION_MSECS = 1000;
-    var FETCH_TRANSMISSION_FREQUENCY_MSECS = 3000;
 
     var uniqueWords = {
         _words: [],
@@ -32,6 +31,28 @@
             return word;
         }
     };
+
+    var WordDisplay = (function () {
+
+        /**
+         * Displays the list of unique recalled words.
+         */
+        var WordDisplay = function (settings) {
+            if (!(this instanceof WordDisplay)) {
+                return new WordDisplay(settings);
+            }
+            this.socket = settings.socket;
+            this.$wordList = $("#reply");
+            this.socket.subscribe(this.updateWordList, "word_added", this);
+        };
+
+        WordDisplay.prototype.updateWordList = function (msg) {
+            this.$wordList.append("<p style='color: #1693A5;'>" + msg.word + "</p>");
+        };
+
+
+        return WordDisplay;
+    }());
 
     var WordSubmission = (function () {
 
@@ -61,7 +82,6 @@
             if (! newWord) {
                 return;
             }
-            $("#reply").append("<p style='color: #1693A5;'>" + newWord + "</p>");
             self.$input.val("");
             self.$input.focus();
 
@@ -71,8 +91,10 @@
             ).done(function(resp) {
                 var msg = {
                     type: "word_added",
+                    word: newWord,
                 };
                 self.socket.send(msg);
+                self.socket.broadcast(msg);
                 self._enable();
             });
         };
@@ -130,16 +152,16 @@
 
         var egoParticipantId = dallinger.getUrlParameter("participant_id"),
             socket = startSocket(egoParticipantId),
-            wordSubmission;
+            wordDisplay = new WordDisplay({socket: socket}),
+            wordSubmission = new WordSubmission(
+                {egoID: egoParticipantId, socket: socket}
+            );
 
         // Leave the chatroom.
         $("#leave-chat").click(function() {
             dallinger.allowExit();
             dallinger.goToPage("questionnaire");
         });
-        wordSubmission = new WordSubmission(
-            {egoID: egoParticipantId, socket: socket}
-        );
         startPlayer();
     });
 
@@ -230,35 +252,6 @@
         $("#send-message").removeClass("disabled");
         $("#send-message").html("Send");
         $("#reproduction").focus();
-        getTransmissions();
-    }
-
-    function getTransmissions() {
-        dallinger.getTransmissions(
-            currentNodeId,
-            {status: "pending"}
-        ).done(function(resp) {
-            console.log("Got transmissions...");
-            var transmissions = resp.transmissions;
-            for (var i = transmissions.length - 1; i >= 0; i--) {
-                displayInfo(currentNodeId, transmissions[i].info_id);
-            }
-            setTimeout(function () {
-                getTransmissions(currentNodeId);
-            },
-            FETCH_TRANSMISSION_FREQUENCY_MSECS);
-        });
-    }
-
-    function displayInfo(nodeId, infoId) {
-        dallinger.getInfo(
-            nodeId, infoId
-        ).done(function(resp) {
-            var newWord = uniqueWords.add(resp.info.contents);
-            if (newWord) {
-                $("#reply").append("<p>" + newWord + "</p>");
-            }
-        });
     }
 
 }($, dallinger, pubsub));
