@@ -33,6 +33,14 @@
 
     var RecallDisplay = (function () {
 
+        var myWord = function (word) {
+            return "<p style='color: #1693A5;'>" + word + "</p>";
+        };
+
+        var someoneElsesWord = function (word) {
+            return "<p>" + word + "</p>";
+        };
+
         /**
          * Displays the list of unique recalled words.
          */
@@ -40,17 +48,23 @@
             if (!(this instanceof RecallDisplay)) {
                 return new RecallDisplay(settings);
             }
+            this.egoID = settings.egoID;
             this.socket = settings.socket;
             this.$wordList = $("#reply");
             this.socket.subscribe(this.updateWordList, "word_added", this);
         };
 
-            this.$wordList.append("<p style='color: #1693A5;'>" + msg.word + "</p>");
         RecallDisplay.prototype.updateWordList = function (msg) {
+            this.$wordList.append(this.styledWord(msg.author, msg.word));
         };
 
+        RecallDisplay.prototype.styledWord = function (author, word) {
+            if (author === this.egoID) {
+                return myWord(word);
+            }
+            return someoneElsesWord(word);
+        };
 
-        return WordDisplay;
         return RecallDisplay;
     }());
 
@@ -92,6 +106,7 @@
                 var msg = {
                     type: "word_added",
                     word: newWord,
+                    author: self.egoID
                 };
                 self.socket.send(msg);
                 self.socket.broadcast(msg);
@@ -153,9 +168,9 @@
         var egoParticipantId = dallinger.getUrlParameter("participant_id"),
             socket = startSocket(egoParticipantId),
             recallDisplay = new RecallDisplay(
+                {egoID: egoParticipantId, socket: socket}),
             wordSubmission = new WordSubmission(
-                {egoID: egoParticipantId, socket: socket}
-            );
+                {egoID: egoParticipantId, socket: socket});
 
         // Leave the chatroom.
         $("#leave-chat").click(function() {
