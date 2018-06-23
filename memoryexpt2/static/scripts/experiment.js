@@ -50,7 +50,7 @@
             }
             this.egoID = settings.egoID;
             this.socket = settings.socket;
-            this.$wordList = $("#reply");
+            this.$wordList = $("#recalled-words");
             this.socket.subscribe(this.updateWordList, "word_added", this);
         };
 
@@ -108,8 +108,8 @@
                     word: newWord,
                     author: self.egoID
                 };
-                self.socket.send(msg);
-                self.socket.broadcast(msg);
+                self.socket.send(msg);  // so turn can be updated
+                self.socket.broadcast(msg);  // so others can see the new word
                 self._enable();
             });
         };
@@ -124,10 +124,8 @@
         WordSubmission.prototype.changeOfTurn = function (msg) {
             currentPlayerId = msg.player_id;
             if (currentPlayerId === this.egoID) {
-                console.log("It's our turn.");
                 this._enable();
             } else {
-                console.log("It's not our turn.");
                 this._disable();
             }
         };
@@ -166,17 +164,16 @@
     $(document).ready(function() {
 
         var egoParticipantId = dallinger.getUrlParameter("participant_id"),
-            socket = startSocket(egoParticipantId),
-            recallDisplay = new RecallDisplay(
-                {egoID: egoParticipantId, socket: socket}),
-            wordSubmission = new WordSubmission(
-                {egoID: egoParticipantId, socket: socket});
+            socket = startSocket(egoParticipantId);
 
-        // Leave the chatroom.
+        // Allow participant to call it quits.
         $("#leave-chat").click(function() {
             dallinger.allowExit();
             dallinger.goToPage("questionnaire");
         });
+
+        new RecallDisplay({egoID: egoParticipantId, socket: socket});
+        new WordSubmission({egoID: egoParticipantId, socket: socket});
         startPlayer();
     });
 
