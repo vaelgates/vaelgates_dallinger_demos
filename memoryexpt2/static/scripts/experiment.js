@@ -31,6 +31,61 @@
         }
     };
 
+    var Timer = (function () {
+
+        var remainingTimeMessage = function (seconds) {
+            return seconds + " seconds remaining..."
+        };
+
+        /**
+         * Displays seconds remaining in the current turn, and indicates
+         * whether it's the current player's turn, or some other player's.
+         */
+        var Timer = function (settings) {
+            if (!(this instanceof Timer)) {
+                return new Timer(settings);
+            }
+            this.egoID = settings.egoID;
+            this.socket = settings.socket;
+            this.$turnIndicator = $("#turn-info");
+            this.$timeRemaining = $("#time-remaining");
+            this._timeoutID = null;
+            this.socket.subscribe(this.changeOfTurn, "change_of_turn", this);
+        };
+
+        Timer.prototype.changeOfTurn = function (msg) {
+            this.$turnIndicator.html(this.whosTurn(msg.player_id));
+            this.updateTimeRemaining(msg.turn_seconds);
+        };
+
+        Timer.prototype.whosTurn = function (currentPlayerId) {
+            if (currentPlayerId === this.egoID) {
+                return "<strong>It's your turn!</strong>";
+            } else {
+                return "It's someone else's turn.";
+            }
+        };
+
+        Timer.prototype.updateTimeRemaining = function (turnSeconds) {
+            var self = this,
+                remaining = turnSeconds;
+
+            self.$timeRemaining.html(remainingTimeMessage(remaining));
+            self._timeoutID = setTimeout(
+                function update() {
+                    remaining--;
+                    self.$timeRemaining.html(remainingTimeMessage(remaining));
+                    if (remaining > 0) {
+                        self._timeoutID = setTimeout(update, 1000);
+                    }
+                },
+                1000
+            );
+        };
+
+        return Timer;
+    }());
+
     var RecallDisplay = (function () {
 
         var myWord = function (word) {
@@ -173,6 +228,7 @@
 
         new RecallDisplay({egoID: egoParticipantId, socket: socket});
         new WordSubmission({egoID: egoParticipantId, socket: socket});
+        new Timer({egoID: egoParticipantId, socket: socket});
         startPlayer();
     });
 

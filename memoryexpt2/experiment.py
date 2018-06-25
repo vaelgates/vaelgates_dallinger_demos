@@ -20,7 +20,7 @@ class Turn(object):
 
     def __init__(self):
         self.start = time.time()
-        self.timeout_secs = 8.0
+        self.timeout_secs = 5
 
     @property
     def is_expired(self):
@@ -31,6 +31,7 @@ class Turn(object):
 class ExpiredTurn(object):
 
     is_expired = True
+    timeout_secs = 0
 
     def __init__(self):
         pass
@@ -109,6 +110,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         message = {
             'type': 'change_of_turn',
             'player_id': current_turn_player,
+            'turn_seconds': self._turn.timeout_secs
         }
         logger.info("Sending turn update...")
         self.publish(message)
