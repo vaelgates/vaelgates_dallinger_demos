@@ -5,10 +5,8 @@ import random
 import time
 
 import dallinger as dlgr
-from dallinger import db
 from dallinger.heroku.worker import conn as redis
-from dallinger.models import Node, Network, timenow
-from dallinger.networks import Empty
+from dallinger.models import Node
 from dallinger.networks import FullyConnected
 from dallinger.nodes import Source
 
@@ -63,6 +61,32 @@ class Rotation(object):
     def count(self):
         return len(self._player_ids)
 
+    def __repr__(self):
+        return "%s %r" % (self.__class__, self._player_ids)
+
+
+class RandomRotation(Rotation):
+
+    def __init__(self):
+        self._player_ids = []
+        self._active_player = None
+        self._had_a_turn = set()
+
+    def next(self):
+        all_players = set(self._player_ids)
+        still_to_play = all_players - self._had_a_turn
+        if not still_to_play:
+            logger.info("Resetting round...")
+            self._had_a_turn.clear()
+            still_to_play = all_players
+        self._active_player = random.sample(still_to_play, 1)[0]
+        self._had_a_turn.add(self._active_player)
+        return self.current
+
+    @property
+    def current(self):
+        return self._active_player
+
 
 class CoordinationChatroom(dlgr.experiments.Experiment):
     """Define the structure of the experiment."""
@@ -73,10 +97,10 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         """Initialize the experiment."""
         super(CoordinationChatroom, self).__init__(session)
         self.experiment_repeats = 1
-        self.num_participants = 2 #55 #55 #140 below
-        self.initial_recruitment_size = 2 #self.num_participants * 1 #note: can't do *2.5 here, won't run even if the end result is an integer
+        self.num_participants = 3 #55 #55 #140 below
+        self.initial_recruitment_size = 3 #self.num_participants * 1 #note: can't do *2.5 here, won't run even if the end result is an integer
         self.quorum = self.num_participants
-        self.rotation = Rotation()
+        self.rotation = RandomRotation()
         self._turn = ExpiredTurn()
         if session:
             self.setup()
