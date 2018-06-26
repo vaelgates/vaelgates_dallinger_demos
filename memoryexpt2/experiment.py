@@ -37,6 +37,33 @@ class ExpiredTurn(object):
         pass
 
 
+class Rotation(object):
+
+    def __init__(self):
+        self._player_ids = []
+        self._active_player_idx = 0
+
+    def add(self, player_id):
+        if player_id not in self._player_ids:
+            self._player_ids.append(player_id)
+
+    def remove(self, player_id):
+        if player_id in self._player_ids:
+            self._player_ids.remove(player_id)
+
+    def next(self):
+        self._active_player_idx = (self._active_player_idx + 1) % self.count
+        return self.current
+
+    @property
+    def current(self):
+        return self._player_ids[self._active_player_idx]
+
+    @property
+    def count(self):
+        return len(self._player_ids)
+
+
 class CoordinationChatroom(dlgr.experiments.Experiment):
     """Define the structure of the experiment."""
 
@@ -49,7 +76,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         self.num_participants = 2 #55 #55 #140 below
         self.initial_recruitment_size = 2 #self.num_participants * 1 #note: can't do *2.5 here, won't run even if the end result is an integer
         self.quorum = self.num_participants
-        self._players = []
+        self.rotation = Rotation()
         self._turn = ExpiredTurn()
         if session:
             self.setup()
@@ -62,13 +89,17 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
 
     def handle_connect(self, msg):
         player_id = msg['player_id']
-        if player_id not in self._players:
-            self._players.append(player_id)
-        logger.info("Client {} has connected.".format(player_id))
-        logger.info(self._players)
+        self.rotation.add(player_id)
+        logger.info("Player {} has connected.".format(player_id))
+        logger.info(self.rotation)
 
     def handle_disconnect(self, msg):
-        logger.info('Client {} has disconnected.'.format(msg['player_id']))
+        player_id = msg['player_id']
+        was_players_turn = self.rotation.current == player_id
+        self.rotation.remove(player_id)
+        if was_players_turn:
+            self.end_turn()
+        logger.info('Player {} has disconnected.'.format(player_id))
 
     def handle_word_added(self, msg):
         logger.info("The server knows a word was added!")
@@ -90,31 +121,28 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
 
     @property
     def all_players_have_joined(self):
-        return len(self._players) == self.num_participants
+        return self.rotation.count == self.quorum
 
     def game_loop(self):
-        """Publish the current state of the grid and game"""
+        """Track turns and send current player and turn length to clients."""
         gevent.sleep(1.00)
-        current_player_idx = 0
+        while not self.all_players_have_joined:
+            gevent.sleep(0.1)
         while True:
             gevent.sleep(0.1)
-            if not self.all_players_have_joined:
-                continue
             if self.turn_is_over:
                 self.new_turn()
-                current_player_idx = self.change_player(current_player_idx)
+                self.change_player()
 
-    def change_player(self, current_player_idx):
-        current_player_idx = (current_player_idx + 1) % len(self._players)
-        current_turn_player = self._players[current_player_idx]
+    def change_player(self):
+        next_player = self.rotation.next()
         message = {
             'type': 'change_of_turn',
-            'player_id': current_turn_player,
+            'player_id': next_player,
             'turn_seconds': self._turn.timeout_secs
         }
         logger.info("Sending turn update...")
         self.publish(message)
-        return current_player_idx
 
     def publish(self, msg):
         """Publish a message to all memoryexpt2 clients"""

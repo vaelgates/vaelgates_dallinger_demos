@@ -209,9 +209,18 @@
                 self.skipTurn();
             });
             self.$finishedButton.click(function () {
+                self._disconnect();
                 dallinger.allowExit();
                 dallinger.goToPage("questionnaire");
             });
+        };
+
+        WordSubmission.prototype._disconnect = function () {
+            var msg = {
+                type: "disconnect",
+                player_id: this.egoID
+            };
+            this.socket.send(msg);
         };
 
         WordSubmission.prototype._disable = function () {
