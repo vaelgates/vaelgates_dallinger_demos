@@ -102,7 +102,9 @@ var pubsub = (function ($, ReconnectingWebSocket) {
 
             this._socket.onmessage = function (event) {
                 var msg = parse(self, event);
-                self._pubsub.publish(msg, msg.type);
+                if (msg) {
+                    self._pubsub.publish(msg, msg.type);
+                }
             };
         };
 
