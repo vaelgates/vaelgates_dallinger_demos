@@ -101,8 +101,8 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
             if not self.all_players_have_joined:
                 continue
             if self.turn_is_over:
-                current_player_idx = self.change_player(current_player_idx)
                 self.new_turn()
+                current_player_idx = self.change_player(current_player_idx)
 
     def change_player(self, current_player_idx):
         current_player_idx = (current_player_idx + 1) % len(self._players)

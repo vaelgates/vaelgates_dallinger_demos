@@ -33,10 +33,6 @@
 
     var Timer = (function () {
 
-        var remainingTimeMessage = function (seconds) {
-            return seconds + " seconds remaining..."
-        };
-
         /**
          * Displays seconds remaining in the current turn, and indicates
          * whether it's the current player's turn, or some other player's.
@@ -53,34 +49,46 @@
             this.socket.subscribe(this.changeOfTurn, "change_of_turn", this);
         };
 
-        Timer.prototype.changeOfTurn = function (msg) {
-            this.$turnIndicator.html(this.whosTurn(msg.player_id));
-            this.updateTimeRemaining(msg.turn_seconds);
+        Timer.prototype.reset = function (seconds) {
+            this.stop();
+            this.set(seconds);
         };
 
-        Timer.prototype.whosTurn = function (currentPlayerId) {
+        Timer.prototype.set = function (seconds) {
+            var self = this;
+
+            this.showTimeRemaining(seconds);
+            this._timeoutID = setInterval(
+                function () {
+                    seconds--;
+                    self.showTimeRemaining(seconds);
+                    if (seconds <= 0) {
+                        self.stop();
+                    }
+                },
+                1000
+            );
+        };
+
+        Timer.prototype.stop = function () {
+            clearInterval(this._timeoutID);
+        };
+
+        Timer.prototype.showWhosTurn = function (currentPlayerId) {
             if (currentPlayerId === this.egoID) {
-                return "<strong>It's your turn!</strong>";
+                return "<span class='active-turn'>It's your turn!</span>";
             } else {
                 return "It's someone else's turn.";
             }
         };
 
-        Timer.prototype.updateTimeRemaining = function (turnSeconds) {
-            var self = this,
-                remaining = turnSeconds;
+        Timer.prototype.showTimeRemaining = function (seconds) {
+            this.$timeRemaining.html(seconds + " seconds remaining...");
+        };
 
-            self.$timeRemaining.html(remainingTimeMessage(remaining));
-            self._timeoutID = setTimeout(
-                function update() {
-                    remaining--;
-                    self.$timeRemaining.html(remainingTimeMessage(remaining));
-                    if (remaining > 0) {
-                        self._timeoutID = setTimeout(update, 1000);
-                    }
-                },
-                1000
-            );
+        Timer.prototype.changeOfTurn = function (msg) {
+            this.$turnIndicator.html(this.showWhosTurn(msg.player_id));
+            this.reset(msg.turn_seconds);
         };
 
         return Timer;
