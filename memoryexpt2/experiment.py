@@ -126,11 +126,9 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         logger.info('Player {} has disconnected.'.format(player_id))
 
     def handle_word_added(self, msg):
-        logger.info("The server knows a word was added!")
         self.end_turn()
 
     def handle_skip_turn(self, msg):
-        logger.info("The server learned about a skip of turn.")
         self.end_turn()
 
     def end_turn(self):
@@ -165,7 +163,6 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
             'player_id': next_player,
             'turn_seconds': self._turn.timeout_secs
         }
-        logger.info("Sending turn update...")
         self.publish(message)
 
     def publish(self, msg):
@@ -177,7 +174,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
 
         param raw_message is a string with a channel prefix, for example:
 
-            'memoryexpt2_ctrl:{"type":"move","player_id":0,"move":"left"}'
+            'memoryexpt2_ctrl:{"type":"connect","player_id":1}'
         """
         mapping = {
             'connect': self.handle_connect,
