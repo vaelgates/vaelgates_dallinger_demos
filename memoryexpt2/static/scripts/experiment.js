@@ -94,15 +94,92 @@
         return Timer;
     }());
 
+    var Word = (function () {
+
+        /**
+         * Displays or reads a word submitted by another player.
+         */
+        var Word = function (settings) {
+            if (!(this instanceof Word)) {
+                return new Word(settings);
+            }
+            this.message = settings.message;
+            this.word = settings.message.word;
+            this.egoID = settings.egoID;
+        };
+
+        Word.prototype.isIntendedForMe = function () {
+            return this.message.recipients.indexOf(this.egoID) !== -1;
+        };
+
+        Word.prototype.print = function () {
+            return "<p>" + this.word + "</p>";
+        };
+
+        Word.prototype.speak = function () {
+            var utterance = new SpeechSynthesisUtterance(this.word);
+            window.speechSynthesis.speak(utterance);
+        };
+
+        return Word;
+    }());
+
+    var MyWord = (function () {
+
+        /**
+         * Displays or reads a word I submitted.
+         */
+
+        var MyWord = function (settings) {
+            if (!(this instanceof MyWord)) {
+                return new MyWord(settings);
+            }
+            Word.call(this, settings);
+        };
+
+        MyWord.prototype = Object.create(Word.prototype);
+
+        MyWord.prototype.isIntendedForMe = function () {
+            return true;
+        };
+
+        MyWord.prototype.print = function () {
+            return "<p style='color: #1693A5;'>" + this.word + "</p>";
+        };
+
+        MyWord.prototype.speak = function () {
+            console.log("Not speaking the word: " + this.word);
+        };
+
+        return MyWord;
+    }());
+
+
+
+    var WordFactory = (function () {
+
+        /**
+         * Creates the right kind of Word depending on who submitted it.
+         */
+        var WordFactory = function (egoID) {
+            if (!(this instanceof WordFactory)) {
+                return new WordFactory(egoID);
+            }
+            this.egoID = egoID;
+        };
+
+        WordFactory.prototype.create = function (message) {
+            var settings = {message: message, egoID: this.egoID};
+            if (message.author === this.egoID) {
+                return MyWord(settings);
+            }
+            return Word(settings);
+        };
+
+        return WordFactory;
+    }());
+
     var RecallDisplay = (function () {
-
-        var myWord = function (word) {
-            return "<p style='color: #1693A5;'>" + word + "</p>";
-        };
-
-        var someoneElsesWord = function (word) {
-            return "<p>" + word + "</p>";
-        };
 
         /**
          * Displays the list of unique recalled words.
@@ -112,27 +189,20 @@
                 return new RecallDisplay(settings);
             }
             this.egoID = settings.egoID;
+            this.wordFactory = WordFactory(this.egoID);
             this.socket = settings.socket;
             this.$wordList = $("#recalled-words");
             this.socket.subscribe(this.updateWordList, "word_transmitted", this);
         };
 
         RecallDisplay.prototype.updateWordList = function (msg) {
-            if (this.isIntendedForMe(msg)) {
-                uniqueWords.add(msg.word);
-                this.$wordList.append(this.styledWord(msg.author, msg.word));
-            }
-        };
+            var smartWord = this.wordFactory.create(msg);
 
-        RecallDisplay.prototype.isIntendedForMe = function (msg) {
-            return msg.recipients.indexOf(this.egoID) !== -1;
-        };
-
-        RecallDisplay.prototype.styledWord = function (author, word) {
-            if (author === this.egoID) {
-                return myWord(word);
+            if (smartWord.isIntendedForMe()) {
+                uniqueWords.add(smartWord.word);
+                this.$wordList.append(smartWord.print());
+                smartWord.speak();
             }
-            return someoneElsesWord(word);
         };
 
         return RecallDisplay;
