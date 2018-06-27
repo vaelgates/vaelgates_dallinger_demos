@@ -118,9 +118,14 @@
         };
 
         RecallDisplay.prototype.updateWordList = function (msg) {
-            if (msg.recipients.indexOf(this.egoID) !== -1) {
+            if (this.isIntendedForMe(msg)) {
+                uniqueWords.add(msg.word);
                 this.$wordList.append(this.styledWord(msg.author, msg.word));
             }
+        };
+
+        RecallDisplay.prototype.isIntendedForMe = function (msg) {
+            return msg.recipients.indexOf(this.egoID) !== -1;
         };
 
         RecallDisplay.prototype.styledWord = function (author, word) {
