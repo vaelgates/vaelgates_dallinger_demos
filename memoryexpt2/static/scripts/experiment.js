@@ -4,8 +4,8 @@
 
     var currentNodeId;
     var currentPlayerId;
-    // var FILLER_TASK_DURATION_MSECS = 30000
-    // var WORD_DISPLAY_DURATION_MSECS = 2000
+    // var FILLER_TASK_DURATION_MSECS = 30000;
+    // var WORD_DISPLAY_DURATION_MSECS = 2000;
     var FILLER_TASK_DURATION_MSECS = 3000;
     var WORD_DISPLAY_DURATION_MSECS = 1000;
 
@@ -114,11 +114,13 @@
             this.egoID = settings.egoID;
             this.socket = settings.socket;
             this.$wordList = $("#recalled-words");
-            this.socket.subscribe(this.updateWordList, "word_added", this);
+            this.socket.subscribe(this.updateWordList, "word_transmitted", this);
         };
 
         RecallDisplay.prototype.updateWordList = function (msg) {
-            this.$wordList.append(this.styledWord(msg.author, msg.word));
+            if (msg.recipients.indexOf(this.egoID) !== -1) {
+                this.$wordList.append(this.styledWord(msg.author, msg.word));
+            }
         };
 
         RecallDisplay.prototype.styledWord = function (author, word) {
@@ -173,7 +175,6 @@
                     author: self.egoID
                 };
                 self.socket.send(msg);  // so turn can be updated
-                self.socket.broadcast(msg);  // so others can see the new word
                 self._enable();
             });
         };

@@ -2,6 +2,7 @@ import gevent
 import json
 import logging
 import random
+import six
 import time
 
 import dallinger as dlgr
@@ -194,6 +195,31 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
             logger.info("Received a message, but not our channel: {}".format(
                 raw_message))
 
+    def is_a_legal_word(self, word):
+        # Our words contain no spaces, so if we've got a space, it's probably
+        # the "Filler Task" submission.
+        return ' ' not in word
+
+    def report_word_transmitted(self, word, recipients, author):
+        """A word was submitted and transmitted to connected players. Publish
+        this info to clients so they can add the word to their own word list
+        if appropriate.
+
+        'author's (participant IDs) are really strings, not integers, so we
+        do the conversion here.
+        """
+        if not self.is_a_legal_word(word):
+            return
+
+        message = {
+            'type': 'word_transmitted',
+            'word': word,
+            'author': six.text_type(author),
+            'recipients': json.dumps([six.text_type(r) for r in recipients])
+        }
+        logger.info('Sending word transmission: "{}"'.format(message))
+        self.publish(message)
+
     def setup(self):
         """Setup the networks.
 
@@ -356,8 +382,16 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
 
     def info_post_request(self, node, info):
         """Run when a request to create an info is complete."""
+        recipients = [node.participant_id]
         for agent in node.neighbors():
             node.transmit(what=info, to_whom=agent)
+            recipients.append(agent.participant_id)
+
+        self.report_word_transmitted(
+            word=info.contents,
+            recipients=recipients,
+            author=node.participant_id
+        )
 
     # def info_post_request(self, node, info):
     #    """Run when a request to create an info is complete."""
