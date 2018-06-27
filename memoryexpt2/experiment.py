@@ -8,6 +8,7 @@ import time
 import dallinger as dlgr
 from dallinger.heroku.worker import conn as redis
 from dallinger.models import Node
+from dallinger.networks import Empty
 from dallinger.networks import FullyConnected
 from dallinger.nodes import Source
 
@@ -99,8 +100,8 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         """Initialize the experiment."""
         super(CoordinationChatroom, self).__init__(session)
         self.experiment_repeats = 1
-        self.num_participants = 3 #55 #55 #140 below
-        self.initial_recruitment_size = 3 #self.num_participants * 1 #note: can't do *2.5 here, won't run even if the end result is an integer
+        self.num_participants = 4 #55 #55 #140 below
+        self.initial_recruitment_size = 4 #self.num_participants * 1 #note: can't do *2.5 here, won't run even if the end result is an integer
         self.quorum = self.num_participants
         self.rotation = RandomRotation()
         self._turn = ExpiredTurn()
@@ -235,8 +236,8 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
 
     def create_network(self):
         """Create a new network by reading the configuration file."""
-        #return Empty(max_size=self.num_participants + 1)  # add a Source
-        return FullyConnected(max_size=self.num_participants + 1)  # add a Source
+        return Empty(max_size=self.num_participants + 1)  # add a Source
+        # return FullyConnected(max_size=self.num_participants + 1)  # add a Source
 
     def bonus(self, participant):
         """Give the participant a bonus for waiting."""
@@ -259,7 +260,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
 
         # here are all the edges that need to be connected
         # BABY_NETWORK:
-        #all_edges = [(0, 1), (0, 2), (0, 3), (2, 3)]
+        all_edges = [(0, 1), (0, 2), (0, 3), (2, 3)]
         #all_edges = [(0,1), (0,2)]
 
         # FULLY CONNECTED:
@@ -398,6 +399,12 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
     #    """Transfer info to only one neighbor."""
     #    agent = random.choice(node.neighbors())
     #    node.transmit(what=info, to_whom=agent)
+    #    recipients = [node.participant_id, agent.participant_id]
+    #    self.report_word_transmitted(
+    #         word=info.contents,
+    #         recipients=recipients,
+    #         author=node.participant_id
+    #    )
 
     def create_node(self, participant, network):
         """Create a node for a participant."""
