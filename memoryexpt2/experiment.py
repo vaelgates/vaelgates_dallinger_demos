@@ -79,8 +79,9 @@ class RandomRotation(Rotation):
             logger.info("Resetting round...")
             self._had_a_turn.clear()
             still_to_play = all_players
-        self._active_player = random.sample(still_to_play, 1)[0]
-        self._had_a_turn.add(self._active_player)
+        if still_to_play:
+            self._active_player = random.sample(still_to_play, 1)[0]
+            self._had_a_turn.add(self._active_player)
         return self.current
 
     @property
