@@ -6,7 +6,7 @@ class MemoryExperimentNetwork(object):
     network = Empty
 
     def edges(self):
-        return self.all_edges.copy()
+        return list(self.all_edges)
 
     def __repr__(self):
         return "%s (%s)" % (self.__class__.__name__, self.network)
