@@ -44,7 +44,7 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         if not self.networks():
             super(MafiaExperiment, self).setup()
             for net in self.networks():
-                FreeRecallListSource(network=net)
+                Source(network=net)
 
     def create_network(self):
         """Create a new network by reading the configuration file."""
@@ -225,8 +225,7 @@ def live_participants(node_id, get_all):
             mimetype='application/json')
 
 
-class FreeRecallListSource(Source):
-    """A Source that reads in a random list from a file and transmits it."""
+class Source(Source):
 
     __mapper_args__ = {
         "polymorphic_identity": "free_recall_list_source"
@@ -237,27 +236,5 @@ class FreeRecallListSource(Source):
         transmit() -> _what() -> create_information() -> _contents().
         """
 
-        # read in UUID
-        exptfilename = "experiment_id.txt"
-        exptfile = open(exptfilename, "r")
-        UUID = exptfile.read()  # get UUID of the experiment
+        # Empty
 
-        wordlist = "groupwordlist.md"
-        with open("static/stimuli/{}".format(wordlist), "r") as f:
-
-            # get a wordlist for the expt
-            # reads in the file with a big list of words
-            wordlist = f.read().splitlines()
-            # use the UUID (unique to each expt) as a seed for
-            # the pseudorandom number generator.
-            # the random sample will be the same for everyone within an
-            # experiment but different across experiments b/c
-            # they have different UUIDs.
-            random.seed(UUID)
-            # sample 60 words from large word list without replacement
-            expt_wordlist = random.sample(wordlist, 1)
-
-            # shuffle wordlist for each participant
-            random.seed()  # an actually random seed
-            random.shuffle(expt_wordlist)
-            return json.dumps(expt_wordlist)
