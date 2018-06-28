@@ -8,8 +8,6 @@ import time
 import dallinger as dlgr
 from dallinger.heroku.worker import conn as redis
 from dallinger.models import Node
-from dallinger.networks import Empty
-from dallinger.networks import FullyConnected
 from dallinger.nodes import Source
 
 
@@ -38,6 +36,7 @@ class ExpiredTurn(object):
 
 
 class Rotation(object):
+    """Rotate through players in a fixed order."""
 
     def __init__(self):
         self._player_ids = []
@@ -68,7 +67,9 @@ class Rotation(object):
 
 
 class RandomRotation(Rotation):
-
+    """Rotated through players in a random order, but don't repeat any
+    players until every player has been visited.
+    """
     def __init__(self):
         self._player_ids = []
         self._active_player = None
