@@ -118,6 +118,10 @@
 
         Word.prototype.speak = function () {
             var utterance = new SpeechSynthesisUtterance(this.word);
+            var voice = speechSynthesis.getVoices().filter(
+                function (voice) { return voice.name === "Monica"; }
+            )[0];
+            utterance.voice = voice;
             window.speechSynthesis.speak(utterance);
         };
 
