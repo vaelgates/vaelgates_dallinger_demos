@@ -174,7 +174,7 @@ check_phase = function() {
         $("#note").hide();
         $("#vote-note").hide();
       }
-      $("#narrator").html(resp.victim[0] + ", who is a " + resp.victim[1] + ", has been eliminated! Congratulations, the " + resp.winner + " have won!");
+      $("#narrator").html(resp.victim[0] + ", who is a " + resp.victim[1] + ", has been eliminated! The " + resp.winner + " have won!");
       $("#stimulus").show();
       setTimeout(function () { leave_chatroom(); }, 4000);
     } else if (wasDaytime != resp.daytime) {
@@ -184,8 +184,8 @@ check_phase = function() {
       $("#reply").append("<hr>")
       $("#votes").append("<hr>")
       if (resp.daytime == 'False') {
-        $("#reply").append("<h5>Night " + (switches / 2) + 1 + "</h5>")
-        $("#votes").append("<h5>Night " + (switches / 2) + 1 + "</h5>")
+        $("#reply").append("<h5>Night " + ((switches / 2) + 1).toString() + "</h5>")
+        $("#votes").append("<h5>Night " + ((switches / 2) + 1).toString() + "</h5>")
         document.body.style.backgroundColor = "royalblue";
         $("#narrator").html(resp.victim[0] + ", who is a " + resp.victim[1] + ", has been eliminated!");
         if (currentNodeType == 'mafioso') {
@@ -196,8 +196,8 @@ check_phase = function() {
         }
 
       } else {
-        $("#reply").append("<h5>Day " + (switches + 1) / 2 + "</h5>")
-        $("#votes").append("<h5>Day " + (switches + 1) / 2 + "</h5>")
+        $("#reply").append("<h5>Day " + ((switches + 1) / 2).toString() + "</h5>")
+        $("#votes").append("<h5>Day " + ((switches + 1) / 2).toString() + "</h5>")
         document.body.style.backgroundColor = "lightskyblue";
         $("#narrator").html(resp.victim[0] + " has been eliminated!");
         if (currentNodeType == 'mafioso') {
