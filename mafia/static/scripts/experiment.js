@@ -19,7 +19,7 @@ $(document).ready(function() {
     store.set("assignment_id", dallinger.getUrlParameter("assignment_id"));
     store.set("mode", dallinger.getUrlParameter("mode"));
 
-    window.location.href = '/instructions';
+    window.location.href = '/instructions-1';
   });
 
   // Consent to the experiment.
@@ -28,16 +28,40 @@ $(document).ready(function() {
     self.close();
   });
 
-  // Proceed to the waiting room.
-  $("#go-to-waiting-room").click(function() {
-    // expertise = $("#expertise").val()
-    // if (expertise == '0') {
-    //   window.location.href = '/error2';
-    // } else {
-    window.location.href = '/waiting';
-    // }
+   // Proceed to second page of instructions
+  $("#go-to-instructions-2").click(function() {
+    window.location.href = '/instructions-2';
   });
 
+  // Proceed to waiting room-- only proceed if you get all questions correct
+  $("#go-to-waiting-room").click(function() {
+    compQ1 = $("#compQ1").val()
+    compQ2 = $("#compQ2").val()
+    compQ3 = $("#compQ3").val()
+    compQ4 = $("#compQ4").val()
+    if (compQ1 == 1) {
+      if (compQ2 == 1){ 
+        if (compQ3 == 1){
+          if (compQ4 == 1){
+            dallinger.allowExit();
+            window.location.href = '/waiting';
+            //document.getElementById("go-to-waiting-room").disabled = true
+          }
+        }
+      }
+    }
+  });
+
+  // // Proceed to the waiting room.
+  // $("#go-to-waiting-room").click(function() {
+  //   // expertise = $("#expertise").val()
+  //   // if (expertise == '0') {
+  //   //   window.location.href = '/error2';
+  //   // } else {
+  //   window.location.href = '/waiting';
+  //   // }
+  // });
+  
   // Send a message.
   $("#send-message").click(function() {
     send_message();
