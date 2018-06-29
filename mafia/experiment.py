@@ -171,9 +171,7 @@ def phase(node_id, switches, was_daytime):
             if len(mafiosi) == 0:
                 winner = 'bystanders'
         if winner is not None:
-            victim_type = Node.query.filter_by(
-                property1=victim_name
-            ).one().type
+            victim_type = Node.query.filter_by(property1=victim_name).one().type
 
         exp.save()
 
