@@ -1,0 +1,81 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    <div class="main_div">
+        <h1>Comprehension Questions</h1>
+        <hr>
+          <div class="row question">
+            <div class="col-md-8">
+                There are two phases to this game: nighttime and daytime.
+            </div>
+            <div class="col-md-4">
+              <select id="compQ1" name="compQ1">
+                <option value="2">Select one</option>
+                <option value="1">True</option>
+                <option value="0">False</option>
+              </select>
+            </div>
+          </div>
+          <br>
+        <div class="row question">
+            <div class="col-md-8">
+              During nighttime, only the mafia can speak and act.
+            </div>
+            <div class="col-md-4">
+              <select id="compQ2" name="compQ2">
+                <option value="2">Select one</option>
+                <option value="1">True</option>
+                <option value="0">False</option>
+              </select>
+            </div>
+          </div>
+          <br>
+          <div class="row question">
+            <div class="col-md-8">
+                Participants will be eliminated during each nighttime and daytime by voting.
+            </div>
+            <div class="col-md-4">
+              <select id="compQ3" name="compQ3">
+                <option value="2">Select one</option>
+                <option value="1">True</option>
+                <option value="0">False</option>
+              </select>
+            </div>
+          </div>
+         <div class="row question">
+            <div class="col-md-8">
+                The mafia win if they outnumber the bystanders. 
+                The bystanders win if they eliminate the mafia.
+            </div>
+            <div class="col-md-4">
+              <select id="compQ4" name="compQ4">
+                <option value="2">Select one</option>
+                <option value="1">True</option>
+                <option value="0">False</option>
+              </select>
+            </div>
+          </div>
+          <br>
+         <div class="tryagain">
+            <div class="row">
+                <div class="col-md-8">
+                <p> You can't advance unless you correctly answer all the questions. If you don't remember, click here to return to the Instructions page: </p>
+                 </div>
+                <div class="col-xs-2">
+                    <button type="button" class="btn btn-primary" onClick="dallinger.allowExit(); dallinger.goToPage('instructions-1');"> Instructions</button>
+                </div>
+            </div>
+        </div>
+            <hr>
+        <br>
+            <p><i>Ready?</i> You will now be directed to a waiting room. The game will begin once all participants have arrived. You will be paid for the amount of time you spend waiting in the waiting room for up to 10 minutes. However, if you get stuck in this waiting room for more than 10 minutes, please return the HIT and email <i>mgates@berkeley.edu</i> for compensation. </p>
+                <div>
+            <div class="row">
+                <div class="col-xs-10"></div>
+                <div class="col-xs-2">
+                    <button type="button" id="go-to-waiting-room" class="btn btn-success btn-lg">Begin</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
