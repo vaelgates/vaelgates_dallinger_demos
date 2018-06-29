@@ -64,7 +64,7 @@ create_agent = function() {
     currentNodeType = resp.node.type;
     $("#narrator").html("The game will begin shortly...");
     $("#stimulus").show();
-    setTimeout(function () { $("#stimulus").hide(); showExperiment(); }, 1000);
+    setTimeout(function () { $("#stimulus").hide(); showExperiment(); }, 2000);
   }, function (err) {
     console.log(err);
     errorResponse = JSON.parse(err.response);
@@ -152,7 +152,7 @@ check_phase = function() {
       }
       $("#narrator").html(resp.victim[0] + ", who is a " + resp.victim[1] + ", has been eliminated! Congratulations, the " + resp.winner + " have won!");
       $("#stimulus").show();
-      setTimeout(function () { leave_chatroom(); }, 10000);
+      setTimeout(function () { leave_chatroom(); }, 4000);
     } else if (wasDaytime != resp.daytime) {
       wasDaytime = resp.daytime;
       switches++;
@@ -185,13 +185,14 @@ check_phase = function() {
       }
       $("#stimulus").show();
       if (resp.victim[0] == currentNodeName) {
-        setTimeout(function () { leave_chatroom(); }, 3000);
+        setTimeout(function () { leave_chatroom(); }, 4000);
       }
       getParticipants();
       if (currentNodeType == 'mafioso' && resp.victim[1] == 'mafioso') {
         getMafia();
       }
-      setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 3000);
+      // this is how long the "this person has been eliminated!" message gets displayed
+      setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 6000);
     } else {
       setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 100);
     }
