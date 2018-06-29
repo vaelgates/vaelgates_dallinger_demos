@@ -240,7 +240,7 @@ send_message = function() {
 
   $(
     "#reply"
-  ).append("<p style='color: chocolate;'>" + response + "</p>");
+  ).append("<p style='color: #853d0a;'>" + response + "</p>"); 
 
   $("#reproduction").val("");
   $("#reproduction").focus();
@@ -262,7 +262,7 @@ vote = function() {
   response = currentNodeName + ': ' + $("#participants").val();
   $(
     "#votes"
-  ).append("<p style='color: chocolate;'>" + response + "</p>");
+  ).append("<p style='color: #853d0a;'>" + response + "</p>");
 
   dallinger.createInfo(
     currentNodeId,
