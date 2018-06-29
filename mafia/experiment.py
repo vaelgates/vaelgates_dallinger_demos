@@ -138,6 +138,12 @@ def phase(node_id, switches, was_daytime):
         victim_type = None
         winner = None
 
+        # MONICA
+        # if len(nodes) == 1:
+        #     nodes = Node.query.filter_by(network_id=net.id,
+        #                                  property2='True').all()
+        #     for node in nodes:
+        #         node.alive = 'False'
         # If it's night but should be day, then call setup_daytime()
         if not daytime and (
             int(elapsed_time.total_seconds() -
@@ -170,6 +176,12 @@ def phase(node_id, switches, was_daytime):
                     winner = 'mafia'
             if len(mafiosi) == 0:
                 winner = 'bystanders'
+            # MONICA
+            # victim_type = Node.query.filter_by(property1=victim_name).one().type
+            # if len(mafiosi) > len(nodes) - len(mafiosi) - 1:
+            #     winner = 'mafia'
+            # if len(mafiosi) == 0:
+            #     winner = 'bystanders'
         if winner is not None:
             victim_type = Node.query.filter_by(property1=victim_name).one().type
 

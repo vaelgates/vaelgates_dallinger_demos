@@ -180,7 +180,7 @@ class MafiaNetwork(Network):
         nodes = Node.query.filter_by(
             network_id=self.id, property2='True'
         ).all()
-        if len(mafiosi) > len(nodes) - len(mafiosi):
+        if len(mafiosi) > len(nodes) - len(mafiosi): # MONICA len(mafiosi) > len(nodes) - len(mafiosi) - 1
             winner = 'mafia'
             return victim_name, winner
         if len(mafiosi) == 0:
@@ -204,7 +204,7 @@ class MafiaNetwork(Network):
             network_id=self.id, property2='True', type='mafioso'
         ).all()
         winner = None
-        if len(mafiosi) >= len(nodes) - len(mafiosi) - 1:
+        if len(mafiosi) >= len(nodes) - len(mafiosi) - 1: # MONICA len(mafiosi) > len(nodes) - len(mafiosi) - 1
             winner = 'mafia'
             return victim_name, winner
         if len(mafiosi) == 0:
