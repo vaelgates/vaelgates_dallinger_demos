@@ -35,7 +35,7 @@ class ExpiredTurn(object):
         pass
 
 
-class Rotation(object):
+class FixedRotation(object):
     """Rotate through players in a fixed order."""
 
     def __init__(self):
@@ -66,7 +66,7 @@ class Rotation(object):
         return "%s %r" % (self.__class__, self._player_ids)
 
 
-class RandomRotation(Rotation):
+class RandomRotation(FixedRotation):
     """Rotated through players in a random order, but don't repeat any
     players until every player has been visited.
     """
@@ -92,50 +92,31 @@ class RandomRotation(Rotation):
         return self._active_player
 
 
-class CoordinationChatroom(dlgr.experiments.Experiment):
-    """Define the structure of the experiment."""
+class FixedSequenceTurnTakingGame(object):
 
-    channel = 'memoryexpt2_ctrl'
+    _rotation = FixedRotation
 
-    def __init__(self, session):
-        """Initialize the experiment."""
-        super(CoordinationChatroom, self).__init__(session)
-        self.experiment_repeats = 1
-        self.num_participants = 2 #55 #55 #140 below
-        self.initial_recruitment_size = 2 #self.num_participants * 1 #note: can't do *2.5 here, won't run even if the end result is an integer
-        self.quorum = self.num_participants
-        self.rotation = RandomRotation()
+    def __init__(self, quorum):
+        self.rotation = self._rotation()
+        self.quorum = quorum
         self._turn = ExpiredTurn()
-        import models
-        self.models = models
-        self.known_classes["Fillerans"] = models.Fillerans
-        if session:
-            self.setup()
 
-    @property
-    def background_tasks(self):
-        return [
-            self.game_loop,
-        ]
-
-    def handle_connect(self, msg):
-        player_id = msg['player_id']
+    def add_player(self, player_id):
         self.rotation.add(player_id)
         logger.info("Player {} has connected.".format(player_id))
         logger.info(self.rotation)
 
-    def handle_disconnect(self, msg):
-        player_id = msg['player_id']
+    def remove_player(self, player_id):
         was_players_turn = self.rotation.current == player_id
         self.rotation.remove(player_id)
         if was_players_turn:
             self.end_turn()
         logger.info('Player {} has disconnected.'.format(player_id))
 
-    def handle_word_added(self, msg):
+    def word_added(self):
         self.end_turn()
 
-    def handle_skip_turn(self, msg):
+    def turn_skipped(self):
         self.end_turn()
 
     def end_turn(self):
@@ -152,16 +133,14 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
     def all_players_have_joined(self):
         return self.rotation.count == self.quorum
 
-    def game_loop(self):
-        """Track turns and send current player and turn length to clients."""
-        gevent.sleep(1.00)
-        while not self.all_players_have_joined:
-            gevent.sleep(0.1)
-        while True:
-            gevent.sleep(0.1)
-            if self.turn_is_over:
-                self.new_turn()
-                self.change_player()
+    def is_ready(self):
+        return self.all_players_have_joined
+
+    def tick(self):
+        """Update play state and return any messages to be published"""
+        if self.turn_is_over:
+            self.new_turn()
+            return self.change_player()
 
     def change_player(self):
         next_player = self.rotation.next()
@@ -170,7 +149,61 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
             'player_id': next_player,
             'turn_seconds': self._turn.timeout_secs
         }
-        self.publish(message)
+        return message
+
+
+class RandomSequenceTurnTakingGame(FixedSequenceTurnTakingGame):
+
+    _rotation = RandomRotation
+
+
+class CoordinationChatroom(dlgr.experiments.Experiment):
+    """Define the structure of the experiment."""
+
+    channel = 'memoryexpt2_ctrl'
+
+    def __init__(self, session):
+        """Initialize the experiment."""
+        super(CoordinationChatroom, self).__init__(session)
+        self.experiment_repeats = 1
+        self.num_participants = 2 #55 #55 #140 below
+        self.initial_recruitment_size = 2 #self.num_participants * 1 #note: can't do *2.5 here, won't run even if the end result is an integer
+        self.quorum = self.num_participants  # quorum is read by waiting room
+        self.game = RandomSequenceTurnTakingGame(quorum=self.quorum)
+        import models
+        self.models = models
+        self.known_classes["Fillerans"] = models.Fillerans
+        if session:
+            self.setup()
+
+    @property
+    def background_tasks(self):
+        return [
+            self.game_loop,
+        ]
+
+    def handle_connect(self, msg):
+        self.game.add_player(msg['player_id'])
+
+    def handle_disconnect(self, msg):
+        self.game.remove_player(msg['player_id'])
+
+    def handle_word_added(self, msg):
+        self.game.word_added()
+
+    def handle_skip_turn(self, msg):
+        self.game.turn_skipped()
+
+    def game_loop(self):
+        """Track turns and send current player and turn length to clients."""
+        gevent.sleep(1.00)
+        while not self.game.is_ready:
+            gevent.sleep(0.1)
+        while True:
+            gevent.sleep(0.1)
+            msg = self.game.tick()
+            if msg:
+                self.publish(msg)
 
     def publish(self, msg):
         """Publish a message to all memoryexpt2 clients"""
