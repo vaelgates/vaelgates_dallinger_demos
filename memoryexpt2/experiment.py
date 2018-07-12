@@ -106,6 +106,9 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         self.quorum = self.num_participants
         self.rotation = RandomRotation()
         self._turn = ExpiredTurn()
+        import models
+        self.models = models
+        self.known_classes["Fillerans"] = models.Fillerans
         if session:
             self.setup()
 

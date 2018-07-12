@@ -401,7 +401,7 @@
                 // stores all filler answers in the contents column of info table
                 dallinger.createInfo(
                     currentNodeId,
-                    {contents: filler_answers.join(", "), info_type: "Info"}
+                    {contents: filler_answers.join(", "), info_type: "Fillerans"}
                 ).done(function(resp) {
                     showExperiment();
                 });
