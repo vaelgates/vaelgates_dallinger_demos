@@ -2,7 +2,7 @@ from dallinger.networks import Empty
 from dallinger.networks import FullyConnected
 
 
-class MemoryExperimentNetwork(object):
+class Topology(object):
     network = Empty
 
     def edges(self):
@@ -12,20 +12,24 @@ class MemoryExperimentNetwork(object):
         return "%s (%s)" % (self.__class__.__name__, self.network)
 
 
-class Collaborative(MemoryExperimentNetwork):
+class Nominal(Topology):
+    all_edges = []
+
+
+class Collaborative(Topology):
     network = FullyConnected
     all_edges = []
 
 
-class Baby2(MemoryExperimentNetwork):
+class Baby2(Topology):
     all_edges = [(0, 1), (0, 2)]
 
 
-class Baby4(MemoryExperimentNetwork):
+class Baby4(Topology):
     all_edges = [(0, 1), (0, 2), (0, 3), (2, 3)]
 
 
-class KarateClub(MemoryExperimentNetwork):
+class KarateClub(Topology):
     """KarateClub network.
 
     Data originally from: http://vlado.fmf.uni-lj.si/pub/networks/data/Ucinet/UciData.htm#zachary
@@ -53,6 +57,27 @@ class KarateClub(MemoryExperimentNetwork):
         (28, 33), (28, 31), (29, 32), (29, 33), (30, 33), (30, 32), (31, 32), (31, 33),
         (32, 33)
     ]
+
+
+class SmallWorld16(Topology):
+    """Small-world network.
+    Manually constructing networks based on getting the edges from
+    running python's NetworkX connected_watts_strogatz_graph(n, k, p) function
+    """
+    all_edges = [
+        (0, 32), (0, 1), (0, 2), (0, 33), (1, 33), (1, 2), (1, 3), (2, 3),
+        (2, 4), (3, 4), (3, 5), (4, 5), (4, 6), (5, 15), (5, 7), (6, 17),
+        (6, 7), (7, 27), (7, 12), (8, 9), (8, 10), (9, 10), (9, 11), (10, 11),
+        (10, 12), (11, 12), (11, 13), (12, 13), (12, 14), (13, 14), (13, 15),
+        (14, 16), (14, 15), (15, 16), (15, 17), (16, 17), (16, 18), (17, 18),
+        (17, 19), (18, 19), (18, 20), (19, 20), (19, 21), (20, 21), (20, 22),
+        (21, 22), (21, 23), (22, 24), (22, 23), (23, 24), (23, 25), (24, 25),
+        (24, 26), (25, 26), (25, 27), (26, 27), (26, 28), (27, 28), (27, 29),
+        (28, 29), (28, 30), (29, 30), (29, 31), (30, 32), (30, 31), (31, 32),
+        (31, 33), (32, 33)
+    ]
+
+
 
 # SMALL-WORLD
 #"""Small-world network.

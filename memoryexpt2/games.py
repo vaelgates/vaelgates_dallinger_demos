@@ -84,7 +84,7 @@ class RandomRotation(FixedRotation):
         return self._active_player
 
 
-class MemoryGame(object):
+class TurnType(object):
     """Abstract base class"""
 
     is_ready = True
@@ -108,9 +108,9 @@ class MemoryGame(object):
         pass
 
 
-class OpenGame(MemoryGame):
+class FreeFlowing(TurnType):
     """Any player can submit a (valid) word at any time"""
-    nickname = u'open'
+    nickname = u'free'
     enforce_turns = False
 
     def __init__(self, quorum):
@@ -141,9 +141,9 @@ class OpenGame(MemoryGame):
         pass
 
 
-class FixedSequenceTurnTakingGame(MemoryGame):
+class FixedSequenceTurns(TurnType):
 
-    nickname = u'fixed_order_turns'
+    nickname = u'fixed_turns'
     enforce_turns = True
     _rotation = FixedRotation
 
@@ -204,7 +204,7 @@ class FixedSequenceTurnTakingGame(MemoryGame):
         return message
 
 
-class RandomSequenceTurnTakingGame(FixedSequenceTurnTakingGame):
+class RandomSequenceTurns(FixedSequenceTurns):
 
     nickname = u'random_turns'
     _rotation = RandomRotation
@@ -218,7 +218,7 @@ def _descendent_classes(cls):
 
 
 BY_NAME = {}
-for cls in _descendent_classes(MemoryGame):
+for cls in _descendent_classes(TurnType):
     BY_NAME[cls.__name__] = BY_NAME[cls.nickname] = cls
 
 
