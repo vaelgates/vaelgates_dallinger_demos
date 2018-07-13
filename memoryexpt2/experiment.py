@@ -23,10 +23,10 @@ extra_routes = flask.Blueprint(
 
 @extra_routes.route("/exp")
 def serve_game():
-    """Return the game stage."""
-    return flask.render_template(
-        "exp.html",
-    )
+    """Render the game as a Flask template, so we can include
+    interpolated values from the Experiment.
+    """
+    return flask.render_template("exp.html")
 
 
 class CoordinationChatroom(dlgr.experiments.Experiment):

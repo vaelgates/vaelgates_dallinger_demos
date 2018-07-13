@@ -134,7 +134,6 @@ class OpenGame(MemoryGame):
 
     @property
     def is_ready(self):
-        logger.info("players: {}, quorum: {}".format(len(self._players), self.quorum))
         return len(self._players) == self.quorum
 
     def tick(self):
