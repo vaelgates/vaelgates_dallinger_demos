@@ -9,18 +9,27 @@
     <div class="main_div">
         <h1>Instructions</h1>
         <hr>
-        <h4>Speaker Test</h4>
+        <h4>Speaker and Voice Quality Test</h4>
         <p>
-            The following test will check to see if your speakers are working.
+            The following test will check to see if your speakers are working,
             <br>
-            Please press the play button. If you can clearly hear a beep, you
+            and also if you can clearly understand the synthesizer voice.
             <br>
-            are ready to begin the experiment.
+            Please press the 'Hear Phrase' button to test. If you can hear
+            <br>
+            the prhase, please type in the text box below and press the
+            <br>
+            'Compare' button. If the test result is not encouraging, you
+            <br>
+            might consider not accepting this HIT. Thanks.
         </p>
-        <audio controls>
-            <source src="static/stimuli/beep.mp3" type="audio/mpeg">
-            Your browser does not support the audio element.
-        </audio>
+        <button type="button" id="test-sound" class="btn btn-lg btn-primary">Hear Phrase</button>
+        <br>
+        <input type="text" id="heard-as" size="60" />
+        <button type="button" id="compare-phrases" class="btn btn-lg btn-primary">Compare</button>
+        <br>
+        <div id="sound-test-result">
+        </div>
         <br>
         <h4>In this experiment, you will see a list of words presented one at
               a time. Try to remember as many as possible: you will be tested on these words later.</h4>
