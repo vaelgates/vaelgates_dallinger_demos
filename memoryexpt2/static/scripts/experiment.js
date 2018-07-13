@@ -369,17 +369,16 @@
     $(document).ready(function() {
 
         var egoParticipantId = dallinger.getUrlParameter("participant_id"),
-            socket = startSocket(egoParticipantId);
+            socket = startSocket(egoParticipantId),
+            config = {egoID: egoParticipantId, socket: socket};
 
-        new RecallDisplay({egoID: egoParticipantId, socket: socket});
+        new RecallDisplay(config);
         if (settings.enforceTurns) {
-            new WordSubmissionWithTurns(
-                {egoID: egoParticipantId, socket: socket}
-            );
+            new WordSubmissionWithTurns(config);
         } else {
-            new WordSubmissionFreeForAll({egoID: egoParticipantId, socket: socket})
+            new WordSubmissionFreeForAll(config);
         }
-        new Timer({egoID: egoParticipantId, socket: socket});
+        new Timer(config);
         startPlayer();
     });
 
