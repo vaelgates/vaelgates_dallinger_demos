@@ -41,11 +41,11 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         self.num_participants = 2 #55 #55 #140 below
         self.initial_recruitment_size = 2 #self.num_participants * 1 #note: can't do *2.5 here, won't run even if the end result is an integer
         self.quorum = self.num_participants  # quorum is read by waiting room
+        self.game = games.by_name(u'open', quorum=self.quorum)
+        self.enforce_turns = self.game.enforce_turns  # Configures front-end
         import models
         self.models = models
         self.known_classes["Fillerans"] = models.Fillerans
-        self.game = games.by_name(u'open', quorum=self.quorum)
-        self.enforce_turns = self.game.enforce_turns  # Configures front-end
         if session:
             self.setup()
 
