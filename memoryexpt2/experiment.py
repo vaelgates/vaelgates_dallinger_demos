@@ -1,3 +1,4 @@
+import flask
 import gevent
 import json
 import logging
@@ -12,6 +13,20 @@ from dallinger.nodes import Source
 
 
 logger = logging.getLogger(__file__)
+
+extra_routes = flask.Blueprint(
+    'extra_routes',
+    __name__,
+    template_folder='templates',
+    static_folder='static')
+
+
+@extra_routes.route("/exp")
+def serve_game():
+    """Return the game stage."""
+    return flask.render_template(
+        "exp.html",
+    )
 
 
 class Turn(object):
@@ -94,6 +109,7 @@ class RandomRotation(FixedRotation):
 
 class FixedSequenceTurnTakingGame(object):
 
+    enforce_turns = True
     _rotation = FixedRotation
 
     def __init__(self, quorum):
@@ -133,6 +149,7 @@ class FixedSequenceTurnTakingGame(object):
     def all_players_have_joined(self):
         return self.rotation.count == self.quorum
 
+    @property
     def is_ready(self):
         return self.all_players_have_joined
 
@@ -157,6 +174,40 @@ class RandomSequenceTurnTakingGame(FixedSequenceTurnTakingGame):
     _rotation = RandomRotation
 
 
+class OpenGame(object):
+    """Any player can submit a (valid) word at any time"""
+
+    enforce_turns = False
+
+    def __init__(self, quorum):
+        self.quorum = quorum
+        self._players = []
+
+    def add_player(self, player_id):
+        self._players.append(player_id)
+        logger.info("Player {} has connected.".format(player_id))
+        logger.info(self._players)
+
+    def remove_player(self, player_id):
+        self._players.remove(player_id)
+        logger.info('Player {} has disconnected.'.format(player_id))
+
+    def word_added(self):
+        pass
+
+    def turn_skipped(self):
+        pass
+
+    @property
+    def is_ready(self):
+        logger.info("players: {}, quorum: {}".format(len(self._players), self.quorum))
+        return len(self._players) == self.quorum
+
+    def tick(self):
+        """We don't care"""
+        pass
+
+
 class CoordinationChatroom(dlgr.experiments.Experiment):
     """Define the structure of the experiment."""
 
@@ -173,6 +224,8 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         import models
         self.models = models
         self.known_classes["Fillerans"] = models.Fillerans
+        self.game = OpenGame(quorum=self.quorum)
+        self.enforce_turns = self.game.enforce_turns  # Configures front-end
         if session:
             self.setup()
 

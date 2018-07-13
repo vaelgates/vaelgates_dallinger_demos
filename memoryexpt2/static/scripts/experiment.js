@@ -1,6 +1,6 @@
-/*global $, dallinger, pubsub */
+/*global $, dallinger, pubsub, settings */
 
-(function ($, dallinger, pubsub) {
+(function ($, dallinger, pubsub, settings) {
 
     var currentNodeId;
     var currentPlayerId;
@@ -212,27 +212,29 @@
         return RecallDisplay;
     }());
 
-    var WordSubmission = (function () {
+
+    var WordSubmissionWithTurns = (function () {
 
         /**
          * Tracks turns and handles canditate word submissions.
          */
-        var WordSubmission = function (settings) {
-            if (!(this instanceof WordSubmission)) {
-                return new WordSubmission(settings);
+        var WordSubmissionWithTurns = function (settings) {
+            if (!(this instanceof WordSubmissionWithTurns)) {
+                return new WordSubmissionWithTurns(settings);
             }
             this.egoID = settings.egoID;
             this.socket = settings.socket;
-            this._enabled = false;
+            this._enabled = false;  // Disabled until turn info arrives
             this.$sendButton = $("#send-message");
             this.$passButton = $("#skip-turn");
+            this.gameActions = [this.$sendButton, this.$passButton];
             this.$finishedButton = $("#leave-chat");
             this.$input = $("#reproduction");
             this._bindEvents();
             this.socket.subscribe(this.changeOfTurn, "change_of_turn", this);
         };
 
-        WordSubmission.prototype.checkAndSendWord = function () {
+        WordSubmissionWithTurns.prototype.checkAndSendWord = function () {
             if (! this._enabled) {
                 return;
             }
@@ -247,25 +249,25 @@
             dallinger.createInfo(
                 currentNodeId,
                 {contents: newWord, info_type: "Info"}
-            ).done(function(resp) {
+            ).done(function () {
                 var msg = {
                     type: "word_added",
                     word: newWord,
                     author: self.egoID
                 };
-                self.socket.send(msg);  // so turn can be updated
+                self.socket.send(msg);  // Report word submission to the backend
                 self._enable();
             });
         };
 
-        WordSubmission.prototype.skipTurn = function () {
+        WordSubmissionWithTurns.prototype.skipTurn = function () {
             var msg = {
                 type: "skip_turn",
             };
             this.socket.send(msg);
         };
 
-        WordSubmission.prototype.changeOfTurn = function (msg) {
+        WordSubmissionWithTurns.prototype.changeOfTurn = function (msg) {
             currentPlayerId = msg.player_id;
             if (currentPlayerId === this.egoID) {
                 this._enable();
@@ -274,7 +276,7 @@
             }
         };
 
-        WordSubmission.prototype._bindEvents = function () {
+        WordSubmissionWithTurns.prototype._bindEvents = function () {
             var self = this;
             $(document).keypress(function(e) {
                 if (e.which === 13) {
@@ -295,7 +297,7 @@
             });
         };
 
-        WordSubmission.prototype._disconnect = function () {
+        WordSubmissionWithTurns.prototype._disconnect = function () {
             var msg = {
                 type: "disconnect",
                 player_id: this.egoID
@@ -303,20 +305,66 @@
             this.socket.send(msg);
         };
 
-        WordSubmission.prototype._disable = function () {
+        WordSubmissionWithTurns.prototype._disable = function () {
             this._enabled = false;
-            this.$sendButton.attr("disabled", true);
-            this.$passButton.attr("disabled", true);
+            this.gameActions.forEach(function (item) {
+                item.attr("disabled", true);
+            });
         };
 
-        WordSubmission.prototype._enable = function () {
+        WordSubmissionWithTurns.prototype._enable = function () {
             this._enabled = true;
-            this.$sendButton.attr("disabled", false);
-            this.$passButton.attr("disabled", false);
+            this.gameActions.forEach(function (item) {
+                item.attr("disabled", false);
+            });
         };
 
-        return WordSubmission;
+        return WordSubmissionWithTurns;
     }());
+
+    var WordSubmissionFreeForAll = (function () {
+
+        /**
+         * Tracks turns and handles canditate word submissions.
+         */
+        var WordSubmissionFreeForAll = function (settings) {
+            if (!(this instanceof WordSubmissionFreeForAll)) {
+                return new WordSubmissionFreeForAll(settings);
+            }
+            this.egoID = settings.egoID;
+            this.socket = settings.socket;
+            this._enabled = true;  // No waiting before you can type words
+            this.$sendButton = $("#send-message");
+            this.gameActions = [this.$sendButton];
+            this.$finishedButton = $("#leave-chat");
+            this.$input = $("#reproduction");
+            this._bindEvents();
+            this.socket.subscribe(this.changeOfTurn, "change_of_turn", this);
+        };
+
+        WordSubmissionFreeForAll.prototype = Object.create(WordSubmissionWithTurns.prototype);
+
+        WordSubmissionFreeForAll.prototype._bindEvents = function () {
+            var self = this;
+            $(document).keypress(function(e) {
+                if (e.which === 13) {
+                    self.$sendButton.click();
+                    return false;
+                }
+            });
+            self.$sendButton.click(function() {
+                self.checkAndSendWord();
+            });
+            self.$finishedButton.click(function () {
+                self._disconnect();
+                dallinger.allowExit();
+                dallinger.goToPage("questionnaire");
+            });
+        };
+
+        return WordSubmissionFreeForAll;
+    }());
+
 
     $(document).ready(function() {
 
@@ -324,7 +372,13 @@
             socket = startSocket(egoParticipantId);
 
         new RecallDisplay({egoID: egoParticipantId, socket: socket});
-        new WordSubmission({egoID: egoParticipantId, socket: socket});
+        if (settings.enforceTurns) {
+            new WordSubmissionWithTurns(
+                {egoID: egoParticipantId, socket: socket}
+            );
+        } else {
+            new WordSubmissionFreeForAll({egoID: egoParticipantId, socket: socket})
+        }
         new Timer({egoID: egoParticipantId, socket: socket});
         startPlayer();
     });
@@ -418,4 +472,4 @@
         $("#reproduction").focus();
     }
 
-}($, dallinger, pubsub));
+}($, dallinger, pubsub, settings));

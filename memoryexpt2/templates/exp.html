@@ -1,5 +1,13 @@
 {% extends "layout.html" %}
 
+{% block head %}
+<script type="text/javascript">
+    // Parameters
+    settings = {};
+    settings.enforceTurns = {% if experiment.enforce_turns %}true{% else %}false{% endif %};
+</script>
+{% endblock %}
+
 {% block body %}
 <div id="experiment" class="main_div">
     <div id="stimulus">
@@ -65,7 +73,9 @@
         </div>
         <input type="text" id="reproduction" class="form-control" />
         <button id="send-message" type="button" class="btn btn-primary">Send.</button>
+        {% if experiment.enforce_turns %}
         <button id="skip-turn" type="button" class="btn btn-default">Pass</button>
+        {% endif %}
         <button id="leave-chat" type="button" class="btn">I can't recall any more</button>
     </div>
 
