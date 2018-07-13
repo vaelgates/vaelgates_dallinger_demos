@@ -1,95 +1,32 @@
+import flask
 import gevent
 import json
 import logging
 import random
 import six
-import time
 
 import dallinger as dlgr
 from dallinger.heroku.worker import conn as redis
 from dallinger.models import Node
 from dallinger.nodes import Source
+from . import games
 
 
 logger = logging.getLogger(__file__)
 
-
-class Turn(object):
-
-    def __init__(self):
-        self.start = time.time()
-        self.timeout_secs = 5
-
-    @property
-    def is_expired(self):
-        age = time.time() - self.start
-        return age > self.timeout_secs
+extra_routes = flask.Blueprint(
+    'extra_routes',
+    __name__,
+    template_folder='templates',
+    static_folder='static')
 
 
-class ExpiredTurn(object):
-
-    is_expired = True
-    timeout_secs = 0
-
-    def __init__(self):
-        pass
-
-
-class Rotation(object):
-    """Rotate through players in a fixed order."""
-
-    def __init__(self):
-        self._player_ids = []
-        self._active_player_idx = 0
-
-    def add(self, player_id):
-        if player_id not in self._player_ids:
-            self._player_ids.append(player_id)
-
-    def remove(self, player_id):
-        if player_id in self._player_ids:
-            self._player_ids.remove(player_id)
-
-    def next(self):
-        self._active_player_idx = (self._active_player_idx + 1) % self.count
-        return self.current
-
-    @property
-    def current(self):
-        return self._player_ids[self._active_player_idx]
-
-    @property
-    def count(self):
-        return len(self._player_ids)
-
-    def __repr__(self):
-        return "%s %r" % (self.__class__, self._player_ids)
-
-
-class RandomRotation(Rotation):
-    """Rotated through players in a random order, but don't repeat any
-    players until every player has been visited.
+@extra_routes.route("/exp")
+def serve_game():
+    """Render the game as a Flask template, so we can include
+    interpolated values from the Experiment.
     """
-    def __init__(self):
-        self._player_ids = []
-        self._active_player = None
-        self._had_a_turn = set()
-
-    def next(self):
-        all_players = set(self._player_ids)
-        still_to_play = all_players - self._had_a_turn
-        if not still_to_play:
-            logger.info("Resetting round...")
-            self._had_a_turn.clear()
-            still_to_play = all_players
-        if still_to_play:
-            self._active_player = random.sample(still_to_play, 1)[0]
-            self._had_a_turn.add(self._active_player)
-        return self.current
-
-    @property
-    def current(self):
-        return self._active_player
+    return flask.render_template("exp.html")
 
 
 class CoordinationChatroom(dlgr.experiments.Experiment):
@@ -103,9 +40,9 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         self.experiment_repeats = 1
         self.num_participants = 2 #55 #55 #140 below
         self.initial_recruitment_size = 2 #self.num_participants * 1 #note: can't do *2.5 here, won't run even if the end result is an integer
-        self.quorum = self.num_participants
-        self.rotation = RandomRotation()
-        self._turn = ExpiredTurn()
+        self.quorum = self.num_participants  # quorum is read by waiting room
+        self.game = games.by_name(u'open', quorum=self.quorum)
+        self.enforce_turns = self.game.enforce_turns  # Configures front-end
         import models
         self.models = models
         self.known_classes["Fillerans"] = models.Fillerans
@@ -119,58 +56,27 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         ]
 
     def handle_connect(self, msg):
-        player_id = msg['player_id']
-        self.rotation.add(player_id)
-        logger.info("Player {} has connected.".format(player_id))
-        logger.info(self.rotation)
+        self.game.add_player(msg['player_id'])
 
     def handle_disconnect(self, msg):
-        player_id = msg['player_id']
-        was_players_turn = self.rotation.current == player_id
-        self.rotation.remove(player_id)
-        if was_players_turn:
-            self.end_turn()
-        logger.info('Player {} has disconnected.'.format(player_id))
+        self.game.remove_player(msg['player_id'])
 
     def handle_word_added(self, msg):
-        self.end_turn()
+        self.game.word_added()
 
     def handle_skip_turn(self, msg):
-        self.end_turn()
-
-    def end_turn(self):
-        self._turn = ExpiredTurn()
-
-    def new_turn(self):
-        self._turn = Turn()
-
-    @property
-    def turn_is_over(self):
-        return self._turn.is_expired
-
-    @property
-    def all_players_have_joined(self):
-        return self.rotation.count == self.quorum
+        self.game.turn_skipped()
 
     def game_loop(self):
         """Track turns and send current player and turn length to clients."""
         gevent.sleep(1.00)
-        while not self.all_players_have_joined:
+        while not self.game.is_ready:
             gevent.sleep(0.1)
         while True:
             gevent.sleep(0.1)
-            if self.turn_is_over:
-                self.new_turn()
-                self.change_player()
-
-    def change_player(self):
-        next_player = self.rotation.next()
-        message = {
-            'type': 'change_of_turn',
-            'player_id': next_player,
-            'turn_seconds': self._turn.timeout_secs
-        }
-        self.publish(message)
+            msg = self.game.tick()
+            if msg:
+                self.publish(msg)
 
     def publish(self, msg):
         """Publish a message to all memoryexpt2 clients"""
