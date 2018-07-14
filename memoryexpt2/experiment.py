@@ -56,15 +56,19 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
             self.game_loop,
         ]
 
-    def handle_connect(self, msg):
+    def record_waiting_room_exit(self, player_id):
         DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
         end_waiting_room = datetime.datetime.now().strftime(DATETIME_FORMAT)
-        participant = self.session.query(dallinger.models.Participant)
+        participant = self.session.query(dlgr.models.Participant)
         participant.property1 = end_waiting_room
         self.session.commit()
         logger.info("Player {} waiting room exit: {}.".format(player_id,
                                                               end_waiting_room))
-        self.game.add_player(msg['player_id'])
+
+    def handle_connect(self, msg):
+        player_id = msg['player_id']
+        self.record_waiting_room_exit(player_id)
+        self.game.add_player(player_id)
 
     def handle_disconnect(self, msg):
         self.game.remove_player(msg['player_id'])
