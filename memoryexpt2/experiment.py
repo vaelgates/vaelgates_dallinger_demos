@@ -1,3 +1,4 @@
+import datetime
 import gevent
 import json
 import logging
@@ -119,6 +120,13 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         ]
 
     def handle_connect(self, msg):
+        DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+        end_waiting_room = datetime.datetime.now().strftime(DATETIME_FORMAT)
+        participant = self.session.query(dallinger.models.Participant)
+        participant.property1 = end_waiting_room
+        self.session.commit()
+        logger.info("Player {} waiting room exit: {}.".format(player_id,
+                                                              end_waiting_room))
         player_id = msg['player_id']
         self.rotation.add(player_id)
         logger.info("Player {} has connected.".format(player_id))
@@ -251,9 +259,15 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
 
     def bonus(self, participant):
         """Give the participant a bonus for waiting."""
-
         DOLLARS_PER_HOUR = 5.0
-        t = participant.end_time - participant.creation_time
+        DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+        try:
+            end_waiting_room = datetime.datetime.strptime(participant.property1,
+                                                          DATETIME_FORMAT)
+        except ValueError:
+            # just in case something went wrong saving wait room end time
+            end_waiting_room = participant.end_time
+        t = end_waiting_room - participant.creation_time
 
         # keep to two decimal points otherwise doesn't work
         return round((t.total_seconds() / 3600) * DOLLARS_PER_HOUR, 2)
