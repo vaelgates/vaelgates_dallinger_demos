@@ -2,7 +2,7 @@
 
 (function ($, dallinger) {
 
-    var TEST_PHRASE = "Moses supposes his toeses are roses";
+    var TEST_PHRASE = "The cat jumps over the box";
 
     $(document).ready(function() {
         // Proceed to the waiting room.
@@ -25,9 +25,10 @@
             score = similarity(TEST_PHRASE, heardAs);
             if (score >= 0.75) {
                 result = '<div class="alert alert-success" role="alert">Everything seems to work. You can go ahead with the experiment.</div>';
+                $("#go-to-waiting-room")[0].disabled = false;
             } else {
 
-                result = '<div class="alert alert-danger role="alert">Either sound does not work, or quality was too bad to understand the phrase.</div>';
+                result = '<div class="alert alert-danger role="alert">Either sound does not work, or quality was too bad to understand the phrase. Please fix your sound to continue.</div>';
             }
             $('#sound-test-result').html(result);
         });
