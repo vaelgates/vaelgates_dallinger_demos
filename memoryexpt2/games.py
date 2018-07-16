@@ -43,6 +43,8 @@ class FixedRotation(object):
             self._player_ids.remove(player_id)
 
     def next(self):
+        if not self.count:
+            return
         self._active_player_idx = (self._active_player_idx + 1) % self.count
         return self.current
 

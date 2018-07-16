@@ -11,6 +11,8 @@ from dallinger.heroku.worker import conn as redis
 from dallinger.models import Node
 from dallinger.nodes import Source
 from . import games
+from . import topologies
+from . import transmission
 
 
 logger = logging.getLogger(__file__)
@@ -30,6 +32,13 @@ def serve_game():
     return flask.render_template("exp.html")
 
 
+def extra_parameters():
+    config = dlgr.config.get_config()
+    config.register('mexp_topology', six.text_type, [], False)
+    config.register('mexp_turn_type', six.text_type, [], False)
+    config.register('mexp_transmission_mode', six.text_type, [], False)
+
+
 class CoordinationChatroom(dlgr.experiments.Experiment):
     """Define the structure of the experiment."""
 
@@ -38,11 +47,23 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
     def __init__(self, session):
         """Initialize the experiment."""
         super(CoordinationChatroom, self).__init__(session)
+        config = dlgr.config.get_config()
         self.experiment_repeats = 1
         self.num_participants = 2 #55 #55 #140 below
         self.initial_recruitment_size = 2 #self.num_participants * 1 #note: can't do *2.5 here, won't run even if the end result is an integer
         self.quorum = self.num_participants  # quorum is read by waiting room
-        self.game = games.by_name(u'free', quorum=self.quorum)
+        self.topology = topologies.by_name(
+            config.get(u'mexp_topology', u'collaborative')
+        )
+        self.game = games.by_name(
+            config.get(u'mexp_turn_type', u'fixed_turns'), quorum=self.quorum
+        )
+        self.transmitter = transmission.by_name(
+            config.get(u'mexp_transmission_mode', u'promiscuous')
+        )
+        logger.info('Using "{}" turns with "{}" transmitter.'.format(
+            self.game.nickname, self.transmitter.nickname
+        ))
         self.enforce_turns = self.game.enforce_turns  # Configures front-end
         import models
         self.models = models
@@ -156,12 +177,6 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
             for net in self.networks():
                 FreeRecallListSource(network=net)
 
-    @property
-    def topology(self):
-        from . import topologies
-        # return topologies.Baby4()
-        return topologies.Collaborative()
-
     def create_network(self):
         """Create a new network by reading the configuration file."""
         logger.info("Using the {} network".format(self.topology))
@@ -204,26 +219,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
 
     def info_post_request(self, node, info):
         """Run when a request to create an info is complete."""
-        self._transmit_to_neighbors(node, info)
-        # self._transmit_to_random_neighbor(node, info)
-
-    def _transmit_to_neighbors(self, node, info):
-        recipients = [node.participant_id]
-        for agent in node.neighbors():
-            node.transmit(what=info, to_whom=agent)
-            recipients.append(agent.participant_id)
-
-        self.report_word_transmitted(
-            word=info.contents,
-            recipients=recipients,
-            author=node.participant_id
-        )
-
-    def _transmit_to_random_neighbor(self, node, info):
-        """Transfer info to only one neighbor."""
-        agent = random.choice(node.neighbors())
-        node.transmit(what=info, to_whom=agent)
-        recipients = [node.participant_id, agent.participant_id]
+        recipients = self.transmitter.transmit(node, info)
         self.report_word_transmitted(
             word=info.contents,
             recipients=recipients,
