@@ -59,7 +59,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
     def record_waiting_room_exit(self, player_id):
         DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
         end_waiting_room = datetime.datetime.now().strftime(DATETIME_FORMAT)
-        participant = self.session.query(dlgr.models.Participant)
+        participant = self.session.query(dlgr.models.Participant).get(player_id)
         participant.property1 = end_waiting_room
         self.session.commit()
         logger.info("Player {} waiting room exit: {}.".format(player_id,
@@ -175,7 +175,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         try:
             end_waiting_room = datetime.datetime.strptime(participant.property1,
                                                           DATETIME_FORMAT)
-        except ValueError:
+        except (TypeError, ValueError):
             # just in case something went wrong saving wait room end time
             end_waiting_room = participant.end_time
         t = end_waiting_room - participant.creation_time
