@@ -1,9 +1,15 @@
+import logging
 from dallinger.networks import Empty
 from dallinger.networks import FullyConnected
 
+logger = logging.getLogger(__name__)
+
 
 class Topology(object):
+    """Abstract base class."""
+
     network = Empty
+    nickname = None
 
     def edges(self):
         return list(self.all_edges)
@@ -13,19 +19,27 @@ class Topology(object):
 
 
 class Nominal(Topology):
+    """Participants play in isolation, with no transmissions to or from
+    others.
+    """
+    nickname = u'nominal'
     all_edges = []
 
 
 class Collaborative(Topology):
+    """All participants are connected to one another."""
     network = FullyConnected
+    nickname = u'collaborative'
     all_edges = []
 
 
 class Baby2(Topology):
+    nickname = u'baby2'
     all_edges = [(0, 1), (0, 2)]
 
 
 class Baby4(Topology):
+    nickname = u'baby4'
     all_edges = [(0, 1), (0, 2), (0, 3), (2, 3)]
 
 
@@ -45,6 +59,7 @@ class KarateClub(Topology):
     An information flow model for conflict and fission in small groups.
     Journal of Anthropological Research, 33, 452-473.
     """
+    nickname = u'karateclub'
     all_edges = [
         (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7), (0, 8),
         (0, 10), (0, 11), (0, 12), (0, 13), (0, 17), (0, 19), (0, 21), (0, 31), (1, 17),
@@ -64,6 +79,7 @@ class SmallWorld16(Topology):
     Manually constructing networks based on getting the edges from
     running python's NetworkX connected_watts_strogatz_graph(n, k, p) function
     """
+    nickname = u'smallworld16'
     all_edges = [
         (0, 32), (0, 1), (0, 2), (0, 33), (1, 33), (1, 2), (1, 3), (2, 3),
         (2, 4), (3, 4), (3, 5), (4, 5), (4, 6), (5, 15), (5, 7), (6, 17),
@@ -77,6 +93,27 @@ class SmallWorld16(Topology):
         (31, 33), (32, 33)
     ]
 
+
+def _descendent_classes(cls):
+    for cls in cls.__subclasses__():
+        yield cls
+        for cls in _descendent_classes(cls):
+            yield cls
+
+
+BY_NAME = {}
+for cls in _descendent_classes(Topology):
+    BY_NAME[cls.__name__] = BY_NAME[cls.nickname] = cls
+
+
+def by_name(name):
+    """Attempt to return a Topology subclass by name.
+
+    Actual class names and known nicknames are both supported.
+    """
+    klass = BY_NAME.get(name)
+    if klass is not None:
+        return klass()
 
 
 # SMALL-WORLD

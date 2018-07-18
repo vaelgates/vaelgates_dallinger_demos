@@ -4,6 +4,9 @@ auto_recruit = true
 group_name = "JuneMemoryTest"
 qualification_blacklist = "JuneMemoryTest"
 assign_qualifications = true
+mexp_topology = karateclub
+mexp_turn_type = free
+mexp_transmission_mode = random
 
 [MTurk]
 title = Memory test
