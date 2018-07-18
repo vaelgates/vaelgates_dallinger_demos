@@ -30,7 +30,10 @@ class SingleRandomNeighbor(Transmitter):
     nickname = u'random'
 
     def transmit(self, node, info):
-        agent = random.choice(node.neighbors())
+        neighbors = node.neighbors()
+        if not neighbors:
+            return []
+        agent = random.choice(neighbors)
         node.transmit(what=info, to_whom=agent)
         recipients = [node.participant_id, agent.participant_id]
 
