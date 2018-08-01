@@ -197,9 +197,9 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         """Return a total bonus for a participant.
         """
         bonus = bonuses.Bonus(participant)
-        logger.info("For waiting: {}, for words: {}".format(
+        logger.info("For waiting: ${:.2f}, for words: ${:.2f}".format(
             bonus.for_waiting, bonus.for_words)
-        )
+         )
         # keep to two decimal points otherwise doesn't work
         return round(bonus.total, 2)
 
