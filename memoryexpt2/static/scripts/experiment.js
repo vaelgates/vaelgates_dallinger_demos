@@ -28,6 +28,13 @@
 
             this._words.push(word);
             return word;
+        },
+
+        /**
+         * Return a copy of the word list.
+         */
+        retrieve: function () {
+            return this._words.slice();
         }
     };
 
@@ -300,7 +307,8 @@
         WordSubmissionWithTurns.prototype._disconnect = function () {
             var msg = {
                 type: "disconnect",
-                player_id: this.egoID
+                player_id: this.egoID,
+                words: uniqueWords.retrieve()
             };
             this.socket.send(msg);
         };

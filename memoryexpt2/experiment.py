@@ -1,4 +1,3 @@
-import datetime
 import flask
 import gevent
 import json
@@ -10,6 +9,7 @@ import dallinger as dlgr
 from dallinger.heroku.worker import conn as redis
 from dallinger.models import Node
 from dallinger.nodes import Source
+from . import bonuses
 from . import games
 from . import topologies
 from . import transmission
@@ -77,14 +77,24 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
             self.game_loop,
         ]
 
+    def get_participant(self, player_id):
+        return self.session.query(dlgr.models.Participant).get(player_id)
+
     def record_waiting_room_exit(self, player_id):
-        DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
-        end_waiting_room = datetime.datetime.now().strftime(DATETIME_FORMAT)
-        participant = self.session.query(dlgr.models.Participant).get(player_id)
-        participant.property1 = end_waiting_room
+        bonus = bonuses.Bonus(self.get_participant(player_id))
+        bonus.record_wait_time()
+        logger.info(
+            "Player {} left waiting room after {} seconds.".format(
+                player_id,
+                bonus.wait_time
+            )
+        )
         self.session.commit()
-        logger.info("Player {} waiting room exit: {}.".format(player_id,
-                                                              end_waiting_room))
+
+    def record_word_list(self, player_id, words):
+        bonus = bonuses.Bonus(self.get_participant(player_id))
+        bonus.record_word_list(words)
+        self.session.commit()
 
     def handle_connect(self, msg):
         player_id = msg['player_id']
@@ -93,6 +103,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
 
     def handle_disconnect(self, msg):
         self.game.remove_player(msg['player_id'])
+        self.record_word_list(msg['player_id'], msg['words'])
 
     def handle_word_added(self, msg):
         self.game.word_added()
@@ -183,20 +194,14 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         return self.topology.network(max_size=self.num_participants + 1)  # add a Source
 
     def bonus(self, participant):
-        """Give the participant a bonus for waiting."""
-
-        DOLLARS_PER_HOUR = 5.0
-        DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
-        try:
-            end_waiting_room = datetime.datetime.strptime(participant.property1,
-                                                          DATETIME_FORMAT)
-        except (TypeError, ValueError):
-            # just in case something went wrong saving wait room end time
-            end_waiting_room = participant.end_time
-        t = end_waiting_room - participant.creation_time
-
+        """Return a total bonus for a participant.
+        """
+        bonus = bonuses.Bonus(participant)
+        logger.info("For waiting: {}, for words: {}".format(
+            bonus.for_waiting, bonus.for_words)
+        )
         # keep to two decimal points otherwise doesn't work
-        return round((t.total_seconds() / 3600) * DOLLARS_PER_HOUR, 2)
+        return round(bonus.total, 2)
 
     def add_node_to_network(self, node, network):
         """Add node to the chain and receive transmissions."""
