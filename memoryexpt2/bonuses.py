@@ -12,7 +12,7 @@ class Bonus(object):
     """
 
     dollars_per_hour_for_waiting = 5.0
-    dollars_per_word = .01
+    dollars_per_word = .005 
 
     def __init__(self, participant):
         self.participant = participant
