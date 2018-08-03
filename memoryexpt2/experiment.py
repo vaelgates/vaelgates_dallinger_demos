@@ -4,15 +4,18 @@ import json
 import logging
 import random
 import six
+import ast
 
 import dallinger as dlgr
 from dallinger.heroku.worker import conn as redis
 from dallinger.models import Node
+from dallinger.models import Info
 from dallinger.nodes import Source
 from . import bonuses
 from . import games
 from . import topologies
 from . import transmission
+from . import models
 
 
 logger = logging.getLogger(__file__)
@@ -50,7 +53,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         config = dlgr.config.get_config()
         self.experiment_repeats = 1
         self.num_participants = 2 #55 #55 #140 below
-        self.initial_recruitment_size = 2 #self.num_participants * 1 #note: can't do *2.5 here, won't run even if the end result is an integer
+        self.initial_recruitment_size = self.num_participants * 1 #note: can't do *2.5 here, won't run even if the end result is an integer
         self.quorum = self.num_participants  # quorum is read by waiting room
         self.topology = topologies.by_name(
             config.get(u'mexp_topology', u'collaborative')
@@ -65,7 +68,6 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
             self.game.nickname, self.transmitter.nickname
         ))
         self.enforce_turns = self.game.enforce_turns  # Configures front-end
-        import models
         self.models = models
         self.known_classes["Fillerans"] = models.Fillerans
         if session:
@@ -92,8 +94,32 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         self.session.commit()
 
     def record_word_list(self, player_id, words):
+
+        ## get words recalled by players
+        allrecalledwords_at_playerexit = six.text_type(words) # in unicode
+        allrecalledwords_at_playerexit = ast.literal_eval(allrecalledwords_at_playerexit) #into unicode list
+        allrecalledwords_at_playerexit =[str(x) for x in allrecalledwords_at_playerexit] #into python list
+
+        ## get wordlist from Source
+        # get the source
+        node = Node.query.filter_by(type='free_recall_list_source').one() 
+        # or could do: node.id = 1, infos = Info.query.filter_by(origin_id=node.id,type='info')
+        # get one of the wordlists that Source displayed (reads from the latest in time to earliest sent)
+        for i in node.infos():
+            wordlist = i.contents
+            if wordlist is not None:
+                break
+        wordlist =ast.literal_eval(wordlist) # from unicode to python list
+
+        ## compare "words recalled by players" and "wordlist"
+        correct_recalledwords_at_playerexit = []
+        for word in wordlist:
+            if word in allrecalledwords_at_playerexit:
+                correct_recalledwords_at_playerexit.append(word)
+
+        # participants are paid based on the number of words they got correct
         bonus = bonuses.Bonus(self.get_participant(player_id))
-        bonus.record_word_list(words)
+        bonus.record_word_list(correct_recalledwords_at_playerexit)
         self.session.commit()
 
     def handle_connect(self, msg):
