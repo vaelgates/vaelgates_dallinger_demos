@@ -25,12 +25,12 @@ extra_routes = flask.Blueprint(
     static_folder='static')
 
 
-@extra_routes.route("/exp")
+@extra_routes.route("/experiment")
 def serve_game():
     """Render the game as a Flask template, so we can include
     interpolated values from the Experiment.
     """
-    return flask.render_template("exp.html")
+    return flask.render_template("experiment.html")
 
 
 def extra_parameters():
