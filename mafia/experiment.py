@@ -61,7 +61,14 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         """Give the participant a bonus for waiting."""
 
         DOLLARS_PER_HOUR = 5.0
-        t = participant.end_time - participant.creation_time
+        DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+        try:
+            end_waiting_room = datetime.datetime.strptime(participant.property1,
+                                                          DATETIME_FORMAT)
+        except (TypeError, ValueError):
+            # just in case something went wrong saving wait room end time
+            end_waiting_room = participant.end_time
+        t = end_waiting_room - participant.creation_time
 
         # keep to two decimal points otherwise doesn't work
         return round((t.total_seconds() / 3600) * DOLLARS_PER_HOUR, 2)
