@@ -38,7 +38,7 @@ $(document).ready(function() {
       if (knowgoalQ == 1){ 
         if (diffpartnerQ == 1){
           dallinger.allowExit();
-          dallinger.goToPage('exp');
+          dallinger.goToPage('experiment');
         }
       }
     }
