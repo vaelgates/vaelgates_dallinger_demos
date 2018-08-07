@@ -4,6 +4,8 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from dallinger.models import Node, Network, Info, timenow
 from dallinger.nodes import Source
 from random import choice
+from dallinger import db
+
 
 
 class Text(Info):
@@ -121,6 +123,43 @@ class MafiaNetwork(Network):
         """Make time queryable."""
         return self.property1
 
+    @hybrid_property
+    def winner(self):
+        """Convert property4 to winner."""
+        try:
+            return self.property4
+        except TypeError:
+            return None
+
+    @winner.setter
+    def winner(self, is_winner):
+        """Make time settable."""
+        self.property4 = is_winner
+
+    @winner.expression
+    def winner(self):
+        """Make winner queryable."""
+        return self.property4
+
+    @hybrid_property
+    def last_victim_name(self):
+        """Convert property5 to last_victim_name."""
+        try:
+            return self.property5
+        except TypeError:
+            return None
+
+    @last_victim_name.setter
+    def last_victim_name(self, is_last_victim_name):
+        """Make last_victim_name settable."""
+        self.property5 = is_last_victim_name
+
+    @last_victim_name.expression
+    def last_victim_name(self):
+        """Make last_victim_name queryable."""
+        return self.property5
+
+
     def fail_bystander_vectors(self):
         # mafiosi = self.nodes(type=Mafioso)
         mafiosi = Node.query.filter_by(network_id=self.id,
@@ -149,9 +188,13 @@ class MafiaNetwork(Network):
             if vote in votes:
                 votes[vote] += 1
             else:
-                votes[vote] = 1
+                votes[vote] = 0 #1
         k = list(votes.keys())
         v = list(votes.values())
+        db.logger.exception('MONICA votes:')
+        db.logger.exception(k)
+        db.logger.exception(v)
+        #if all(v) == 0: #MONICA
         victim_name = k[v.index(max(v))]
         victim_node = Node.query.filter_by(property1=victim_name).one()
         victim_node.alive = 'False'
@@ -168,11 +211,14 @@ class MafiaNetwork(Network):
 
     def setup_daytime(self):
         # mafiosi = self.nodes(type=Mafioso)
+        db.logger.exception('MONICA setup_daytime here')
         self.daytime = 'True'
         mafiosi = Node.query.filter_by(
             network_id=self.id, property2='True', type='mafioso'
         ).all()
         victim_name = self.vote(mafiosi)
+        db.logger.exception('MONICA MAFIA VOTES victim_name')
+        db.logger.exception(victim_name)
         mafiosi = Node.query.filter_by(
             network_id=self.id, property2='True', type='mafioso'
         ).all()
@@ -180,7 +226,7 @@ class MafiaNetwork(Network):
         nodes = Node.query.filter_by(
             network_id=self.id, property2='True'
         ).all()
-        if len(mafiosi) > len(nodes) - len(mafiosi): # MONICA len(mafiosi) > len(nodes) - len(mafiosi) - 1
+        if len(mafiosi) > len(nodes) - len(mafiosi) - 1: 
             winner = 'mafia'
             return victim_name, winner
         if len(mafiosi) == 0:
@@ -195,16 +241,19 @@ class MafiaNetwork(Network):
 
     def setup_nighttime(self):
         # nodes = self.nodes()
+        db.logger.exception('MONICA setup_nighttime here')
         self.daytime = 'False'
         nodes = Node.query.filter_by(
             network_id=self.id, property2='True'
         ).all()
         victim_name = self.vote(nodes)
+        db.logger.exception('MONICA EVERYONE VOTES victim_name')
+        db.logger.exception(victim_name)
         mafiosi = Node.query.filter_by(
             network_id=self.id, property2='True', type='mafioso'
         ).all()
         winner = None
-        if len(mafiosi) >= len(nodes) - len(mafiosi) - 1: # MONICA len(mafiosi) > len(nodes) - len(mafiosi) - 1
+        if len(mafiosi) > len(nodes) - len(mafiosi) - 1: 
             winner = 'mafia'
             return victim_name, winner
         if len(mafiosi) == 0:
@@ -212,3 +261,4 @@ class MafiaNetwork(Network):
             return victim_name, winner
         self.fail_bystander_vectors()
         return victim_name, winner
+

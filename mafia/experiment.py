@@ -22,7 +22,7 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         self.models = models
 
         self.experiment_repeats = 1
-        self.num_participants = 4
+        self.num_participants = 7
         # self.num_participants = 4
         # Note: can't do * 2.5 here, won't run even if the end result is an integer
         self.initial_recruitment_size = self.num_participants  # * 2
@@ -53,6 +53,8 @@ class MafiaExperiment(dlgr.experiments.Experiment):
             max_size=self.num_participants + 1
         )  # add a Source
         mafia_network.daytime = 'False'
+        mafia_network.winner = None
+        mafia_network.last_victim_name = None
         return mafia_network
 
     def bonus(self, participant):
@@ -114,78 +116,119 @@ def phase(node_id, switches, was_daytime):
         net = Network.query.filter_by(id=this_node.network_id).one()
         nodes = Node.query.filter_by(network_id=net.id).order_by(
             'creation_time').all()
+        db.logger.exception("MONICA this_node")
+        db.logger.exception(this_node)
+        db.logger.exception("MONICA nodes")
+        db.logger.exception(nodes)
+        nodes_temp = Node.query.filter_by(network_id=this_node.network_id,
+                                         property2='True').all()
+        db.logger.exception("MONICA nodes_temp")
+        db.logger.exception(nodes_temp)
         node = nodes[-1]
         elapsed_time = timenow() - node.creation_time
         daytime = (net.daytime == 'True')
-        day_round_duration = 20#150
-        night_round_duration = 10#60
-        break_duration = 3
+        day_round_duration = 20 #150
+        night_round_duration = 10 #30
+        break_duration = 4 # this line ALSO gets set in experiment.js (hardcoded),            
+        # // this is how long the "this person has been eliminated!" message gets displayed
+        #    setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 6000);
         daybreak_duration = day_round_duration + break_duration
         nightbreak_duration = night_round_duration + break_duration
         time = elapsed_time.total_seconds()
         if switches % 2 == 0:
             time = night_round_duration - (
                 elapsed_time.total_seconds() -
-                switches / 2 * daybreak_duration
+                switches / 2 * daybreak_duration -
+                (switches / 2) * nightbreak_duration
             ) % night_round_duration
         else:
             time = day_round_duration - (
                 elapsed_time.total_seconds() -
-                (switches + 1) / 2 * nightbreak_duration
+                (switches + 1) / 2 * nightbreak_duration -
+                (((switches+1) / 2) -1) * daybreak_duration
             ) % day_round_duration
-        time = int(time)
-        victim_name = None
+        time = int(time) 
+        victim_name = net.last_victim_name # MONICA #None
         victim_type = None
-        winner = None
+        winner = net.winner # MONICA #None
+        db.logger.exception('MONICA INITIAL winner')
+        db.logger.exception(winner)
 
-        # MONICA
-        # if len(nodes) == 1:
-        #     nodes = Node.query.filter_by(network_id=net.id,
-        #                                  property2='True').all()
-        #     for node in nodes:
-        #         node.alive = 'False'
-        # If it's night but should be day, then call setup_daytime()
-        if not daytime and (
-            int(elapsed_time.total_seconds() -
-                switches / 2 * daybreak_duration) == night_round_duration):
-            victim_name, winner = net.setup_daytime()
-        # If it's day but should be night, then call setup_nighttime()
-        elif daytime and (
-            int(elapsed_time.total_seconds() -
-                (switches + 1) / 2 * nightbreak_duration) == day_round_duration):
-            victim_name, winner = net.setup_nighttime()
-            victim_type = Node.query.filter_by(property1=victim_name).one().type
-        elif was_daytime != net.daytime:
-            nodes = Node.query.filter_by(network_id=net.id,
-                                         property2='True').all()
-            mafiosi = Node.query.filter_by(network_id=net.id,
-                                           property2='True',
-                                           type='mafioso').all()
-            victim_name = Node.query.filter_by(
-                network_id=net.id,
-                property2='False'
-            ).order_by('property3').all()[-1].property1
-            if daytime:
+        db.logger.exception("MONICA net.winner at beginning")
+        db.logger.exception(net.winner)
+
+        # if the game's over, skip all code below
+        if winner is None:
+            db.logger.exception('MONICA ARRIVED winner')
+            db.logger.exception(winner)
+            # If it's night but should be day, then call setup_daytime()
+            db.logger.exception('MONICA variable daytime')
+            db.logger.exception(daytime)
+            if not daytime and (
+                int(elapsed_time.total_seconds() -
+                    switches / 2 * daybreak_duration 
+                    - (switches / 2) * nightbreak_duration
+                    ) == night_round_duration):
+                victim_name, winner = net.setup_daytime()
+                db.logger.exception('not daytime')
+                db.logger.exception(node_id)
+                db.logger.exception('not daytime')
+                db.logger.exception(winner)
+            # If it's day but should be night, then call setup_nighttime()
+            elif daytime and (
+                int(elapsed_time.total_seconds() -
+                    (switches + 1) / 2 * nightbreak_duration
+                    - (((switches+1) / 2) -1) * daybreak_duration
+                    ) == day_round_duration):
+                victim_name, winner = net.setup_nighttime()
+                db.logger.exception('MONICA after setup_nighttime nodeID')
+                db.logger.exception(node_id)
+                db.logger.exception('MONICA after setup_nighttime winner')
+                db.logger.exception(winner)
+            elif was_daytime != net.daytime:
+                nodes = Node.query.filter_by(network_id=net.id,
+                                             property2='True').all()
+                mafiosi = Node.query.filter_by(network_id=net.id,
+                                               property2='True',
+                                               type='mafioso').all()
+                victim_name = Node.query.filter_by(
+                    network_id=net.id,
+                    property2='False'
+                ).order_by('property3').all()[-1].property1
                 if len(mafiosi) > len(nodes) - len(mafiosi) - 1:
                     winner = 'mafia'
-            else:
-                victim_type = Node.query.filter_by(
-                    property1=victim_name
-                ).one().type
-                if len(mafiosi) >= len(nodes) - len(mafiosi) - 1:
-                    winner = 'mafia'
-            if len(mafiosi) == 0:
-                winner = 'bystanders'
-            # MONICA
-            # victim_type = Node.query.filter_by(property1=victim_name).one().type
-            # if len(mafiosi) > len(nodes) - len(mafiosi) - 1:
-            #     winner = 'mafia'
-            # if len(mafiosi) == 0:
-            #     winner = 'bystanders'
-        if winner is not None:
-            victim_type = Node.query.filter_by(property1=victim_name).one().type
+                if len(mafiosi) == 0:
+                    winner = 'bystanders'
+                db.logger.exception('MONICA was_daytime != net.daytime nodeID')
+                db.logger.exception(node_id)
+                db.logger.exception('MONICA was_daytime != net.daytime winner')
+                db.logger.exception(winner)
+            
+            # if game over is detected, save that knowledge
+            # so it doesn't get overridden by future nodes running phase()
+            # (this bit of code is absolutely necessary b/c otherwise
+            #  the first node is in "daytime" and then the second node often
+            #  goes to "was_daytime" and then the third node doesn't end)
+            if winner != None: # MONICA
+                net.winner = winner
+                net.last_victim_name = victim_name
 
-        exp.save()
+
+            db.logger.exception("MONICA net.winner at end")
+            db.logger.exception(net.winner)
+
+            db.logger.exception('MONICA nodeID')
+            db.logger.exception(node_id)
+            db.logger.exception('MONICA winner')
+            db.logger.exception(winner)
+            db.logger.exception('MONICA victim_name')
+            db.logger.exception(victim_name)
+            db.logger.exception('MONICA victim_type')
+            db.logger.exception(victim_type)
+
+            exp.save()
+
+        victim_type = Node.query.filter_by(property1=victim_name).one().type
 
         return Response(
             response=json.dumps({
@@ -238,7 +281,7 @@ def live_participants(node_id, get_all):
 class Source(Source):
 
     __mapper_args__ = {
-        "polymorphic_identity": "free_recall_list_source"
+        "polymorphic_identity": "source"
     }
 
     def _contents(self):

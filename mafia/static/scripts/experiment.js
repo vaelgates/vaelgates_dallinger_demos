@@ -159,12 +159,10 @@ check_phase = function() {
     "/phase/" + currentNodeId + '/' + switches + '/' + wasDaytime
   );
   deferred.then(function (resp) {
-    if (resp.daytime == 'True') {
-      $('#remaining').html('Time remaining this day: ' + resp.time)
-    } else {
-      $('#remaining').html('Time remaining this night: ' + resp.time)
-    }
+    // end game if there's a winner
     if (resp.winner) {
+      window.alert(resp.winner)
+      window.alert(currentNodeId)
       $("#player").hide();
       $("#clock").hide();
       $("#response-form").hide();
@@ -177,49 +175,64 @@ check_phase = function() {
       $("#narrator").html(resp.victim[0] + ", who is a " + resp.victim[1] + ", has been eliminated! The " + resp.winner + " have won!");
       $("#stimulus").show();
       setTimeout(function () { leave_chatroom(); }, 4000);
-    } else if (wasDaytime != resp.daytime) {
-      wasDaytime = resp.daytime;
-      switches++;
-      voted = false;
-      $("#reply").append("<hr>")
-      $("#votes").append("<hr>")
-      if (resp.daytime == 'False') {
-        $("#reply").append("<h5>Night " + ((switches / 2) + 1).toString() + "</h5>")
-        $("#votes").append("<h5>Night " + ((switches / 2) + 1).toString() + "</h5>")
-        document.body.style.backgroundColor = "royalblue";
-        $("#narrator").html(resp.victim[0] + ", who is a " + resp.victim[1] + ", has been eliminated!");
-        if (currentNodeType == 'mafioso') {
-          $("#note").html('These messages are private!');
-          $("#vote-note").html('These votes are private!');
-        } else {
-          $("#note").show();
+    // otherwise... 
+    } else {
+          if (resp.winner){
+            window.alert("shouldn't be here")
+            window.alert(resp.winner)
+          }
+          if (resp.daytime == 'True') {
+            $('#remaining').html('Time remaining this day: ' + resp.time)
+          } else {
+            $('#remaining').html('Time remaining this night: ' + resp.time)
+          }
+
+          if (wasDaytime != resp.daytime) {
+            wasDaytime = resp.daytime;
+            switches++;
+            voted = false;
+            $("#reply").append("<hr>")
+            $("#votes").append("<hr>")
+            if (resp.daytime == 'False') {
+              $("#reply").append("<h5>Night " + ((switches / 2) + 1).toString() + "</h5>")
+              $("#votes").append("<h5>Night " + ((switches / 2) + 1).toString() + "</h5>")
+              document.body.style.backgroundColor = "royalblue";
+              $("#narrator").html(resp.victim[0] + ", who is a " + resp.victim[1] + ", has been eliminated!");
+              if (currentNodeType == 'mafioso') {
+                $("#note").html('These messages are private!');
+                $("#vote-note").html('These votes are private!');
+              } else {
+                $("#note").show();
+              }
+
+            } else {
+              $("#reply").append("<h5>Day " + ((switches + 1) / 2).toString() + "</h5>")
+              $("#votes").append("<h5>Day " + ((switches + 1) / 2).toString() + "</h5>")
+              document.body.style.backgroundColor = "lightskyblue";
+              $("#narrator").html(resp.victim[0] + " has been eliminated!");
+              if (currentNodeType == 'mafioso') {
+                $("#note").html('These messages are public!');
+                $("#vote-note").html('These votes are public!');
+              } else {
+                $("#note").hide();
+              }
+            }
+            $("#stimulus").show();
+            if (resp.victim[0] == currentNodeName) {
+              setTimeout(function () { leave_chatroom(); }, 4000);
+            }
+            getParticipants();
+            if (currentNodeType == 'mafioso' && resp.victim[1] == 'mafioso') {
+              getMafia();
+            }
+            // this is how long the "this person has been eliminated!" message gets displayed (ms)
+            setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 6000);
+            // if you change this number you have to change it in "break_duration" in experiment.py
+          } else {
+            setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 100);
+          }
         }
 
-      } else {
-        $("#reply").append("<h5>Day " + ((switches + 1) / 2).toString() + "</h5>")
-        $("#votes").append("<h5>Day " + ((switches + 1) / 2).toString() + "</h5>")
-        document.body.style.backgroundColor = "lightskyblue";
-        $("#narrator").html(resp.victim[0] + " has been eliminated!");
-        if (currentNodeType == 'mafioso') {
-          $("#note").html('These messages are public!');
-          $("#vote-note").html('These votes are public!');
-        } else {
-          $("#note").hide();
-        }
-      }
-      $("#stimulus").show();
-      if (resp.victim[0] == currentNodeName) {
-        setTimeout(function () { leave_chatroom(); }, 4000);
-      }
-      getParticipants();
-      if (currentNodeType == 'mafioso' && resp.victim[1] == 'mafioso') {
-        getMafia();
-      }
-      // this is how long the "this person has been eliminated!" message gets displayed
-      setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 6000);
-    } else {
-      setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 100);
-    }
   }, function (err) {
     setTimeout(function () { get_transmissions(currentNodeId); }, 100);
   });
