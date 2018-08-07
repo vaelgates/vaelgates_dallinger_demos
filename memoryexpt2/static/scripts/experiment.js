@@ -28,6 +28,13 @@
 
             this._words.push(word);
             return word;
+        },
+
+        /**
+         * Return a copy of the word list.
+         */
+        retrieve: function () {
+            return this._words.slice();
         }
     };
 
@@ -300,7 +307,8 @@
         WordSubmissionWithTurns.prototype._disconnect = function () {
             var msg = {
                 type: "disconnect",
-                player_id: this.egoID
+                player_id: this.egoID,
+                words: uniqueWords.retrieve()
             };
             this.socket.send(msg);
         };
@@ -440,8 +448,13 @@
         }
     }
 
+    function createQuestion(participantId, data) {
+        return dallinger.post("/question/" + participantId, data);
+    }
+
     function showFillerTask() {
-        var filler_answers = [];
+        var participantId = dallinger.getUrlParameter("participant_id"),
+            filler_answers = [];
         $("#stimulus").hide();
         $("#fillertask-form").show();
 
@@ -451,10 +464,14 @@
                 $("#fillertask-form input").each(function( i, item ) {
                     filler_answers.push("{" + item.name + ": " + item.value + "}");
                 });
-                // stores all filler answers in the contents column of info table
-                dallinger.createInfo(
-                    currentNodeId,
-                    {contents: filler_answers.join(", "), info_type: "Fillerans"}
+                // stores all filler answers in the Question table
+                createQuestion(
+                    participantId,
+                    {
+                        question: "Fillerans",
+                        response: filler_answers.join(", "),
+                        number: 0
+                    }
                 ).done(function(resp) {
                     showExperiment();
                 });
