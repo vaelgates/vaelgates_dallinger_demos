@@ -39,10 +39,10 @@ $(document).ready(function() {
     compQ2 = $("#compQ2").val()
     compQ3 = $("#compQ3").val()
     compQ4 = $("#compQ4").val()
-    if (compQ1 == 1) {
-      if (compQ2 == 1){ 
-        if (compQ3 == 1){
-          if (compQ4 == 1){
+    if (compQ1 == 2) { //TEMPORARY SWITCH BACK 1
+      if (compQ2 == 2){ //TEMPORARY SWITCH BACK 1
+        if (compQ3 == 2){ //TEMPORARY SWITCH BACK 1
+          if (compQ4 == 2){ //TEMPORARY SWITCH BACK 1
             dallinger.allowExit();
             window.location.href = '/waiting';
             //document.getElementById("go-to-waiting-room").disabled = true
