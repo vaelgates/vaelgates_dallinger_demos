@@ -1,4 +1,3 @@
-import datetime
 import flask
 import gevent
 import json
@@ -10,9 +9,11 @@ import dallinger as dlgr
 from dallinger.heroku.worker import conn as redis
 from dallinger.models import Node
 from dallinger.nodes import Source
+from . import bonuses
 from . import games
 from . import topologies
 from . import transmission
+from . import models
 
 
 logger = logging.getLogger(__file__)
@@ -24,12 +25,12 @@ extra_routes = flask.Blueprint(
     static_folder='static')
 
 
-@extra_routes.route("/exp")
+@extra_routes.route("/experiment")
 def serve_game():
     """Render the game as a Flask template, so we can include
     interpolated values from the Experiment.
     """
-    return flask.render_template("exp.html")
+    return flask.render_template("experiment.html")
 
 
 def extra_parameters():
@@ -50,7 +51,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         config = dlgr.config.get_config()
         self.experiment_repeats = 1
         self.num_participants = 2 #55 #55 #140 below
-        self.initial_recruitment_size = 2 #self.num_participants * 1 #note: can't do *2.5 here, won't run even if the end result is an integer
+        self.initial_recruitment_size = self.num_participants * 1 #note: can't do *2.5 here, won't run even if the end result is an integer
         self.quorum = self.num_participants  # quorum is read by waiting room
         self.topology = topologies.by_name(
             config.get(u'mexp_topology', u'collaborative')
@@ -65,7 +66,6 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
             self.game.nickname, self.transmitter.nickname
         ))
         self.enforce_turns = self.game.enforce_turns  # Configures front-end
-        import models
         self.models = models
         self.known_classes["Fillerans"] = models.Fillerans
         if session:
@@ -77,14 +77,40 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
             self.game_loop,
         ]
 
+    def get_participant(self, player_id):
+        return self.session.query(dlgr.models.Participant).get(player_id)
+
     def record_waiting_room_exit(self, player_id):
-        DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
-        end_waiting_room = datetime.datetime.now().strftime(DATETIME_FORMAT)
-        participant = self.session.query(dlgr.models.Participant).get(player_id)
-        participant.property1 = end_waiting_room
+        bonus = bonuses.Bonus(self.get_participant(player_id))
+        bonus.record_wait_time()
+        logger.info(
+            "Player {} left waiting room after {} seconds.".format(
+                player_id,
+                bonus.wait_time
+            )
+        )
         self.session.commit()
-        logger.info("Player {} waiting room exit: {}.".format(player_id,
-                                                              end_waiting_room))
+
+    def record_word_list(self, player_id, words):
+        player_words = set(words)
+        valid_words = self.retrieve_valid_words()
+        player_valid_words = valid_words.intersection(player_words)
+
+        # participants are paid based on the number of words they got correct
+        bonus = bonuses.Bonus(self.get_participant(player_id))
+        bonus.record_word_list(player_valid_words)
+        self.session.commit()
+
+    def retrieve_valid_words(self):
+        node = Node.query.filter_by(type='free_recall_list_source').one()
+        # Could we just do: json.loads(node.infos()[0].contents) ?
+        wordlist = []
+        for i in node.infos():
+            if i.contents is not None:
+                # json.dumps() on the way in, so json.loads() on the way out:
+                wordlist = json.loads(i.contents)
+                break
+        return set(wordlist)
 
     def handle_connect(self, msg):
         player_id = msg['player_id']
@@ -93,6 +119,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
 
     def handle_disconnect(self, msg):
         self.game.remove_player(msg['player_id'])
+        self.record_word_list(msg['player_id'], msg['words'])
 
     def handle_word_added(self, msg):
         self.game.word_added()
@@ -183,20 +210,14 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         return self.topology.network(max_size=self.num_participants + 1)  # add a Source
 
     def bonus(self, participant):
-        """Give the participant a bonus for waiting."""
-
-        DOLLARS_PER_HOUR = 5.0
-        DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
-        try:
-            end_waiting_room = datetime.datetime.strptime(participant.property1,
-                                                          DATETIME_FORMAT)
-        except (TypeError, ValueError):
-            # just in case something went wrong saving wait room end time
-            end_waiting_room = participant.end_time
-        t = end_waiting_room - participant.creation_time
-
+        """Return a total bonus for a participant.
+        """
+        bonus = bonuses.Bonus(participant)
+        logger.info("For waiting: ${:.2f}, for words: ${:.2f}".format(
+            bonus.for_waiting, bonus.for_words)
+         )
         # keep to two decimal points otherwise doesn't work
-        return round((t.total_seconds() / 3600) * DOLLARS_PER_HOUR, 2)
+        return round(bonus.total, 2)
 
     def add_node_to_network(self, node, network):
         """Add node to the chain and receive transmissions."""
