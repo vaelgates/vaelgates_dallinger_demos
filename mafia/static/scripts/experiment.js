@@ -127,7 +127,15 @@ showParticipants = function(participantList, tag, subtag) {
   for (i = 0; i < participantList.length; i++) {
     // Add the next participant.
     var name = participantList[i];
-    $(tag).append('<' + subtag + '>' + name + '</' + subtag + '>');
+    if (tag == "#mafiosi"){
+         $(tag).append('<' + subtag + '>' + name + '</' + subtag + '>');
+    }
+    if (tag == "#participants") {
+      // don't allow participants to see / vote on themselves
+      if (name.indexOf("(you!)") == -1) { 
+        $(tag).append('<' + subtag + '>' + name + '</' + subtag + '>');
+      }
+    }
   }
 };
 
