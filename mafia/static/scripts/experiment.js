@@ -140,7 +140,6 @@ showParticipants = function(participantList, tag, subtag) {
 };
 
 showExperiment = function() {
-  // submitResponses();
   getParticipants();
   $('#name').html('You are a ' + currentNodeType + "! Your player's name is: " + currentNodeName)
   $("#player").show();
@@ -330,9 +329,3 @@ $(document).keypress(function(e) {
     return false;
   }
 });
-
-// hack for Dallinger 2.0/3.0
-submitResponses = function() {
-  // submitNextResponse(0);
-  submitNextResponse(1);
-};
