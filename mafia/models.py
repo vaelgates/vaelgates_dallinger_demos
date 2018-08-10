@@ -175,7 +175,7 @@ class MafiaNetwork(Network):
             vote = choice(Node.query.filter_by(
                 network_id=self.id,
                 property2='True'
-            ).all()).property1
+            ).all()).property1 # random choice of participant to be eliminated
             node_votes = Info.query.filter_by(
                 origin_id=node.id,
                 type='vote'
@@ -188,7 +188,7 @@ class MafiaNetwork(Network):
             if vote in votes:
                 votes[vote] += 1
             else:
-                votes[vote] = 0 #1
+                votes[vote] = 1
         k = list(votes.keys())
         v = list(votes.values())
         db.logger.exception('MONICA votes:')
