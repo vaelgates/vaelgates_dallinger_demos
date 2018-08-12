@@ -19,7 +19,9 @@ var bonus_earned = .30 // start with bonus, remove for making mistakes...
 // I'm currently just removing .025 per grid if you don't do the grid perfectly, but 
 // don't tell participants this because they won't be motivated to complete
 // the experiment if there's one mistake made
-var movenum = 0  
+var movenum = 0 
+var firstmove = -1
+var mostrecentmove = -1 
 
 var actions = [0,1,2,3,4,5,6,7,8]
 
@@ -131,6 +133,8 @@ function startGame(){
 
   // reset movement number
   movenum = 0 
+  firstmove = -1
+  mostrecentmove = -1
 
 }
 
@@ -175,6 +179,10 @@ function turn(squareID, playersym){
    }
 
   origBoard[squareID] = playersym;
+  if (movenum == 0){
+    firstmove = squareID
+  }
+  mostrecentmove = squareID
   movenum = movenum+1 //starts at 1
 
   // save information about each turn
@@ -319,11 +327,18 @@ function indicesForFilledSquares(board){
   return plays
 }
 
+function indicesForFilledSquares_reduced(){
+  // doing a more limited state representation, to match the Matlab code...
+  // only remember the first piece and last-played piece
+  return [firstmove, mostrecentmove] // repetition is fine, gets taken care of in board2state
+}
+
+
 function board2state(board){
   // convert _ _ _ _ _ _ _ _ _ 1/0 full state array into single value (binary encoding)
   
-  // get indices of filled squares
-  let plays = indicesForFilledSquares(board)
+  // get indices of filled squares (only use 2-piece representation, to match Matlab script)
+  let plays = indicesForFilledSquares_reduced()
 
   // convert board to (reversed) full array
   // create empty array
