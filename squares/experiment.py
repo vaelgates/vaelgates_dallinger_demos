@@ -28,7 +28,7 @@ class Squares(Experiment):
         """Give the participant a bonus for optimally completing grids"""
 
         # keep to two decimal points otherwise doesn't work
-        return .10 #participant.bonus_earned
+        return .30 #participant.bonus_earned
         # MONICA: this should be participant.bonus_earned from index.js, 
         # but I don't know how to do this so I'm just giving everyone
         # the full bonus right now.
