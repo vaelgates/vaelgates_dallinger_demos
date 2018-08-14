@@ -279,11 +279,9 @@ function bestSpot(){
       probActions = getCol(normalRactions,state) 
       //window.alert("normal")
   }
-  window.alert(probActions)
+  //window.alert(probActions)
 
   let bestAction = argMax(probActions) // gets appropriate zero-indexed value
-  //window.alert("bestAction")
-  //window.alert(bestAction)
 
   if (bestAction.length == 1){
      return bestAction[0]
