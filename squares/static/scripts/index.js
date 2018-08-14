@@ -167,15 +167,15 @@ function turn(squareID, playersym){
     for( var i = 0; i < cells.length; i++){
       cells[i].removeEventListener('click', turnClick, false);}
   } else if (playersym==Rplayersym) {
-      //add a time delay for the R playersym
-      window.setTimeout(function(){ 
-        document.getElementById(squareID).innerText = playersym;
-        document.getElementById(squareID).bgColor="grey"; 
-        // enable H controls again
-        for( var i = 0; i < cells.length; i++){
-          cells[i].addEventListener('click', turnClick, false);
-        }
-      },1000);
+    //add a time delay for the R playersym
+    window.setTimeout(function(){ 
+      document.getElementById(squareID).innerText = playersym;
+      document.getElementById(squareID).bgColor="grey"; 
+      // enable H controls again
+      for( var i = 0; i < cells.length; i++){
+        cells[i].addEventListener('click', turnClick, false);
+      }
+    },1000);
    }
 
   origBoard[squareID] = playersym;
@@ -184,6 +184,7 @@ function turn(squareID, playersym){
   }
   mostrecentmove = squareID
   movenum = movenum+1 //starts at 1
+
 
   // save information about each turn
   // save player type (H or R)
@@ -273,11 +274,16 @@ function bestSpot(){
   // take argmax action, and if equal probability over multiple actions then take random choice
   if (theta_cond_pair < 6){ // Schelling robot
       probActions = getCol(schellingRactions,state) 
+      //window.alert("Schelling")
   } else if (theta_cond_pair >= 6){ // normal robot
       probActions = getCol(normalRactions,state) 
+      //window.alert("normal")
   }
+  window.alert(probActions)
 
   let bestAction = argMax(probActions) // gets appropriate zero-indexed value
+  //window.alert("bestAction")
+  //window.alert(bestAction)
 
   if (bestAction.length == 1){
      return bestAction[0]
