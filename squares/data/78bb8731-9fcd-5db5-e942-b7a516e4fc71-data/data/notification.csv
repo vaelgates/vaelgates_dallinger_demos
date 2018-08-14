@@ -1,5 +1,0 @@
-id,creation_time,property1,property2,property3,property4,property5,failed,time_of_death,details,assignment_id,event_type
-1,2018-06-05 23:04:10.822132,,,,,,f,,{},3RANCT1ZVGAF5O0KIZAXQNBVCRAUB3,AssignmentAccepted
-2,2018-06-05 23:15:41.595886,,,,,,f,,{},3RANCT1ZVGAF5O0KIZAXQNBVCRAUB3,AssignmentSubmitted
-3,2018-06-05 23:16:05.504098,,,,,,f,,{},3NKQQ8O39ZY8KLY4WV13LDZVFCMUDA,AssignmentAccepted
-4,2018-06-05 23:23:32.087349,,,,,,f,,{},3NKQQ8O39ZY8KLY4WV13LDZVFCMUDA,AssignmentSubmitted

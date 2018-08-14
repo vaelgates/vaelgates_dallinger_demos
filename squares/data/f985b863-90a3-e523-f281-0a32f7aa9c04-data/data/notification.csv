@@ -1,8 +1,0 @@
-id,creation_time,property1,property2,property3,property4,property5,failed,time_of_death,details,assignment_id,event_type
-1,2018-05-30 21:10:20.887345,,,,,,f,,{},3XM0HYN6NLS0KM48B4DTHPUH76CPEH,AssignmentAccepted
-2,2018-05-30 21:21:40.568328,,,,,,f,,{},3XM0HYN6NLS0KM48B4DTHPUH76CPEH,AssignmentAbandoned
-3,2018-05-30 21:28:49.626062,,,,,,f,,"{""feedback"": """", ""error_text"": """", ""error_type"": ""/info POST server error"", ""request_data"": {""data"": ""{\""contents\"":\""{\\\""trial\\\"":5,\\\""move_num\\\"":2,\\\""squareID\\\"":8,\\\""player\\\"":\\\""R\\\""}\"",\""info_type\"":\""Info\""}"", ""route"": ""/info/1"", ""hit_id"": ""('3WPCIUYH1A1QXOLL6O5SRXHDM26DTN',)"", ""method"": ""post"", ""worker_id"": ""A4NUTNFWSDCJK"", ""participant_id"": null}}","('3XM0HYN6NLS0KM48B4DTHPUH76CPEH',)",ExperimentError
-4,2018-05-30 21:30:18.236042,,,,,,f,,{},3AMW0RGHOEV4ESHL43GC7COQLYDPN6,AssignmentAccepted
-5,2018-05-30 21:33:07.573621,,,,,,f,,{},3AMW0RGHOEV4ESHL43GC7COQLYDPN6,AssignmentSubmitted
-6,2018-05-30 21:34:59.911969,,,,,,f,,{},3UWN2HHPUZY1RKXDWKK62HT18IKNSK,AssignmentAccepted
-7,2018-05-30 21:37:04.150405,,,,,,f,,{},3UWN2HHPUZY1RKXDWKK62HT18IKNSK,AssignmentSubmitted
