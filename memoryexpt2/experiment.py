@@ -296,7 +296,7 @@ class FreeRecallListSource(Source):
             # they have different UUIDs.
             random.seed(UUID)
             # sample 60 words from large word list without replacement
-            expt_wordlist = random.sample(wordlist, 5) #MONICA
+            expt_wordlist = random.sample(wordlist, 60) #5 for testing
 
             ### shuffle wordlist for each participant
             random.seed()  # an actually random seed

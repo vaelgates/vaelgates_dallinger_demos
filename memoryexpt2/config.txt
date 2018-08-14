@@ -5,7 +5,7 @@ group_name = "JuneMemoryTest"
 qualification_blacklist = "JuneMemoryTest"
 assign_qualifications = true
 mexp_topology = collaborative
-mexp_turn_type = free
+mexp_turn_type = random_turns
 mexp_transmission_mode = promiscuous
 
 [MTurk]
