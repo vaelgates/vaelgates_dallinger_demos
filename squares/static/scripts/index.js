@@ -312,7 +312,7 @@ function argMax(arr) {
     // once you have the max, 
     // second round to return other values that are equal to the max
     var maxIndices = []
-    for (var i = 1; i < arr.length; i++) {
+    for (var i = 0; i < arr.length; i++) {
         if (arr[i] == max) {
             maxIndices.push(i);
         }
