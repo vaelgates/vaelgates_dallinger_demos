@@ -113,6 +113,10 @@
             this.message = settings.message;
             this.word = settings.message.word;
             this.egoID = settings.egoID;
+            this.wordsAloud = settings.wordsAloud;
+            this.voice = speechSynthesis.getVoices().filter(
+                function (voice) { return voice.name === "Alex"; }
+            )[0];
         };
 
         Word.prototype.isIntendedForMe = function () {
@@ -124,11 +128,12 @@
         };
 
         Word.prototype.speak = function () {
+            if (! this.wordsAloud) {
+                console.log("Not speaking the word: " + this.word);
+                return;
+            }
             var utterance = new SpeechSynthesisUtterance(this.word);
-            var voice = speechSynthesis.getVoices().filter(
-                function (voice) { return voice.name === "Alex"; }
-            )[0];
-            utterance.voice = voice;
+            utterance.voice = this.voice;
             window.speechSynthesis.speak(utterance);
         };
 
@@ -172,15 +177,20 @@
         /**
          * Creates the right kind of Word depending on who submitted it.
          */
-        var WordFactory = function (egoID) {
+        var WordFactory = function (settings) {
             if (!(this instanceof WordFactory)) {
-                return new WordFactory(egoID);
+                return new WordFactory(settings);
             }
-            this.egoID = egoID;
+            this.egoID = settings.egoID;
+            this.wordsAloud = settings.wordsAloud;
         };
 
         WordFactory.prototype.create = function (message) {
-            var settings = {message: message, egoID: this.egoID};
+            var settings = {
+                message: message,
+                egoID: this.egoID,
+                wordsAloud: this.wordsAloud
+            };
             if (message.author === this.egoID) {
                 return MyWord(settings);
             }
@@ -200,7 +210,7 @@
                 return new RecallDisplay(settings);
             }
             this.egoID = settings.egoID;
-            this.wordFactory = WordFactory(this.egoID);
+            this.wordFactory = WordFactory(settings);
             this.socket = settings.socket;
             this.$wordList = $("#recalled-words");
             this.socket.subscribe(this.updateWordList, "word_transmitted", this);
@@ -378,7 +388,11 @@
 
         var egoParticipantId = dallinger.getUrlParameter("participant_id"),
             socket = startSocket(egoParticipantId),
-            config = {egoID: egoParticipantId, socket: socket};
+            config = {
+                egoID: egoParticipantId,
+                socket: socket,
+                wordsAloud: settings.wordsAloud
+            };
 
         new RecallDisplay(config);
         if (settings.enforceTurns) {

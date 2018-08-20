@@ -5,6 +5,7 @@
     // Parameters
     settings = {};
     settings.enforceTurns = {% if experiment.enforce_turns %}true{% else %}false{% endif %};
+    settings.wordsAloud = {% if experiment.words_aloud %}true{% else %}false{% endif %};
 </script>
 {% endblock %}
 
@@ -55,10 +56,14 @@
 
     <div id="response-form" style="display:none;">
         <p> Good! Now recall the words you saw
-          by typing them below. If there are other people in this chatroom,
-          they will also be able to contribute words, which will be read aloud to you.
-         If you are in a game where you're taking turns with people in the chatroom, know that you can either type a word that hasn't been typed yet, or pass, to complete your turn.</p>
-          <p>Please recall as many words as possible! You will receive a bonus based on how many words you (and whoever is in this chatroom) <i>correctly</i> recall.</p>
+          by typing them below. If there are other people in this chatroom, they will also
+          be able to contribute words{% if experiment.words_aloud %}, which will be read aloud to you{% endif %}.
+          If you are in a game where you're taking turns with people in the chatroom,
+         know that you can either type a word that hasn't been typed yet, or pass, to complete your turn.
+        </p>
+        <p>Please recall as many words as possible! You will receive a bonus based on how many words
+            you (and whoever is in this chatroom) <i>correctly</i> recall.
+        </p>
         <h4> Submit one word at a time, no spaces. You will not be able to submit words already listed (by you or others).</h4>
         <br>
         <!-- Shows the seconds left in the current turn, and who's turn it is. -->
