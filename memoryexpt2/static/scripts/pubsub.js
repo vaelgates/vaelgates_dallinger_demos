@@ -86,19 +86,19 @@ var pubsub = (function ($, ReconnectingWebSocket) {
         /*
          * Public API
          */
-        var Socket = function (settings) {
+        var Socket = function (options) {
             if (!(this instanceof Socket)) {
-                return new Socket(settings);
+                return new Socket(options);
             }
 
             var self = this,
-                tolerance = typeof(settings.lagTolerance) !== "undefined" ? settings.lagTolerance : 0.1;
+                tolerance = typeof(options.lagTolerance) !== "undefined" ? options.lagTolerance : 0.1;
 
-            this.broadcastChannel = settings.broadcast;
-            this.controlChannel = settings.control;
+            this.broadcastChannel = options.broadcast;
+            this.controlChannel = options.control;
             this._pubsub = PubSub();
             this._socket = makeSocket(
-                settings.endpoint, this.broadcastChannel, tolerance);
+                options.endpoint, this.broadcastChannel, tolerance);
 
             this._socket.onmessage = function (event) {
                 var msg = parse(self, event);

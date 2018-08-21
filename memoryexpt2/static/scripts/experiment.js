@@ -44,12 +44,12 @@
          * Displays seconds remaining in the current turn, and indicates
          * whether it's the current player's turn, or some other player's.
          */
-        var Timer = function (settings) {
+        var Timer = function (options) {
             if (!(this instanceof Timer)) {
-                return new Timer(settings);
+                return new Timer(options);
             }
-            this.egoID = settings.egoID;
-            this.socket = settings.socket;
+            this.egoID = options.egoID;
+            this.socket = options.socket;
             this.$turnIndicator = $("#turn-info");
             this.$timeRemaining = $("#time-remaining");
             this._timeoutID = null;
@@ -106,14 +106,14 @@
         /**
          * Displays or reads a word submitted by another player.
          */
-        var Word = function (settings) {
+        var Word = function (options) {
             if (!(this instanceof Word)) {
-                return new Word(settings);
+                return new Word(options);
             }
-            this.message = settings.message;
-            this.word = settings.message.word;
-            this.egoID = settings.egoID;
-            this.wordsAloud = settings.wordsAloud;
+            this.message = options.message;
+            this.word = options.message.word;
+            this.egoID = options.egoID;
+            this.wordsAloud = options.wordsAloud;
             this.voice = speechSynthesis.getVoices().filter(
                 function (voice) { return voice.name === "Alex"; }
             )[0];
@@ -146,11 +146,11 @@
          * Displays or reads a word I submitted.
          */
 
-        var MyWord = function (settings) {
+        var MyWord = function (options) {
             if (!(this instanceof MyWord)) {
-                return new MyWord(settings);
+                return new MyWord(options);
             }
-            Word.call(this, settings);
+            Word.call(this, options);
         };
 
         MyWord.prototype = Object.create(Word.prototype);
@@ -177,12 +177,12 @@
         /**
          * Creates the right kind of Word depending on who submitted it.
          */
-        var WordFactory = function (settings) {
+        var WordFactory = function (options) {
             if (!(this instanceof WordFactory)) {
-                return new WordFactory(settings);
+                return new WordFactory(options);
             }
-            this.egoID = settings.egoID;
-            this.wordsAloud = settings.wordsAloud;
+            this.egoID = options.egoID;
+            this.wordsAloud = options.wordsAloud;
         };
 
         WordFactory.prototype.create = function (message) {
@@ -205,13 +205,12 @@
         /**
          * Displays the list of unique recalled words.
          */
-        var RecallDisplay = function (settings) {
+        var RecallDisplay = function (options) {
             if (!(this instanceof RecallDisplay)) {
-                return new RecallDisplay(settings);
+                return new RecallDisplay(options);
             }
-            this.egoID = settings.egoID;
-            this.wordFactory = WordFactory(settings);
-            this.socket = settings.socket;
+            this.wordFactory = options.wordFactory;
+            this.socket = options.socket;
             this.$wordList = $("#recalled-words");
             this.socket.subscribe(this.updateWordList, "word_transmitted", this);
         };
@@ -235,12 +234,12 @@
         /**
          * Tracks turns and handles canditate word submissions.
          */
-        var WordSubmissionWithTurns = function (settings) {
+        var WordSubmissionWithTurns = function (options) {
             if (!(this instanceof WordSubmissionWithTurns)) {
-                return new WordSubmissionWithTurns(settings);
+                return new WordSubmissionWithTurns(options);
             }
-            this.egoID = settings.egoID;
-            this.socket = settings.socket;
+            this.egoID = options.egoID;
+            this.socket = options.socket;
             this._enabled = false;  // Disabled until turn info arrives
             this.$sendButton = $("#send-message");
             this.$passButton = $("#skip-turn");
@@ -345,12 +344,12 @@
         /**
          * Tracks turns and handles canditate word submissions.
          */
-        var WordSubmissionFreeForAll = function (settings) {
+        var WordSubmissionFreeForAll = function (options) {
             if (!(this instanceof WordSubmissionFreeForAll)) {
-                return new WordSubmissionFreeForAll(settings);
+                return new WordSubmissionFreeForAll(options);
             }
-            this.egoID = settings.egoID;
-            this.socket = settings.socket;
+            this.egoID = options.egoID;
+            this.socket = options.socket;
             this._enabled = true;  // No waiting before you can type words
             this.$sendButton = $("#send-message");
             this.gameActions = [this.$sendButton];
@@ -386,21 +385,19 @@
 
     $(document).ready(function() {
 
-        var egoParticipantId = dallinger.getUrlParameter("participant_id"),
-            socket = startSocket(egoParticipantId),
-            config = {
-                egoID: egoParticipantId,
-                socket: socket,
-                wordsAloud: settings.wordsAloud
-            };
+        var egoID = dallinger.getUrlParameter("participant_id"),
+            socket = startSocket(egoID);
 
-        new RecallDisplay(config);
+        new RecallDisplay({
+            socket: socket,
+            wordFactory: new WordFactory({egoID: egoID, wordsAloud: settings.wordsAloud})
+        });
+        new Timer({egoID: egoID, socket: socket});
         if (settings.enforceTurns) {
-            new WordSubmissionWithTurns(config);
+            new WordSubmissionWithTurns({egoID: egoID, socket: socket});
         } else {
-            new WordSubmissionFreeForAll(config);
+            new WordSubmissionFreeForAll({egoID: egoID, socket: socket});
         }
-        new Timer(config);
         startPlayer();
     });
 
