@@ -33,6 +33,14 @@ def serve_game():
     return flask.render_template("experiment.html")
 
 
+@extra_routes.route("/instructions")
+def serve_instructions():
+    """Render the instructions as a Flask template, so we can include
+    interpolated values from the Experiment.
+    """
+    return flask.render_template("instructions.html")
+
+
 def extra_parameters():
     config = dlgr.config.get_config()
     config.register('mexp_topology', six.text_type, [], False)
