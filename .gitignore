@@ -1,9 +1,8 @@
 .idea/
 .vscode/
 */node_modules/
-*.pyc
-squares/data/f29bbfd1-5c70-eb46-06fa-600fbab287fc-data.zip
 *.csv
-squares/data/f29bbfd1-5c70-eb46-06fa-600fbab287fc-data/experiment_id.md
-squares/data/f29bbfd1-5c70-eb46-06fa-600fbab287fc-data/f29bbfd1-5c70-eb46-06fa-600fbab287fc-code.zip
-squares/snapshots/f29bbfd1-5c70-eb46-06fa-600fbab287fc-code.zip
+*.log
+*.pyc
+*/data/
+*/snapshots/
