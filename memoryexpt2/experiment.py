@@ -33,11 +33,20 @@ def serve_game():
     return flask.render_template("experiment.html")
 
 
+@extra_routes.route("/instructions")
+def serve_instructions():
+    """Render the instructions as a Flask template, so we can include
+    interpolated values from the Experiment.
+    """
+    return flask.render_template("instructions.html")
+
+
 def extra_parameters():
     config = dlgr.config.get_config()
     config.register('mexp_topology', six.text_type, [], False)
     config.register('mexp_turn_type', six.text_type, [], False)
     config.register('mexp_transmission_mode', six.text_type, [], False)
+    config.register('mexp_words_aloud', bool, [], False)
 
 
 class CoordinationChatroom(dlgr.experiments.Experiment):
@@ -53,6 +62,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         self.num_participants = 2 #55 #55 #140 below
         self.initial_recruitment_size = self.num_participants * 1 #note: can't do *2.5 here, won't run even if the end result is an integer
         self.quorum = self.num_participants  # quorum is read by waiting room
+        self.words_aloud = config.get(u'mexp_words_aloud', False)
         self.topology = topologies.by_name(
             config.get(u'mexp_topology', u'collaborative')
         )

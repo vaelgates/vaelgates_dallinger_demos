@@ -7,6 +7,7 @@ assign_qualifications = true
 mexp_topology = collaborative
 mexp_turn_type = random_turns
 mexp_transmission_mode = promiscuous
+mexp_words_aloud = true
 
 [MTurk]
 title = Memory test
