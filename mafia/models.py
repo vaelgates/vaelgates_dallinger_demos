@@ -172,10 +172,12 @@ class MafiaNetwork(Network):
     def vote(self, nodes):
         votes = {}
         for node in nodes:
-            vote = choice(Node.query.filter_by(
-                network_id=self.id,
-                property2='True'
-            ).all()).property1 # random choice of participant to be eliminated
+            vote = node.property1
+            while vote == node.property1:
+                vote = choice(Node.query.filter_by(
+                    network_id=self.id,
+                    property2='True'
+                ).all()).property1 # random choice of participant to be eliminated
             node_votes = Info.query.filter_by(
                 origin_id=node.id,
                 type='vote'
@@ -189,13 +191,16 @@ class MafiaNetwork(Network):
                 votes[vote] += 1
             else:
                 votes[vote] = 1
-        k = list(votes.keys())
-        v = list(votes.values())
+        # k = list(votes.keys())
+        # v = list(votes.values())
+        sorted_kv = sorted(votes.items(), key=lambda kv: kv[0])
         db.logger.exception('MONICA votes:')
-        db.logger.exception(k)
-        db.logger.exception(v)
+        db.logger.exception(sorted_kv)
+        # db.logger.exception(k)
+        # db.logger.exception(v)
         #if all(v) == 0: #MONICA
-        victim_name = k[v.index(max(v))]
+        # victim_name = k[v.index(max(v))]
+        victim_name, _ = max(sorted_kv, key=lambda kv: kv[1])
         victim_node = Node.query.filter_by(property1=victim_name).one()
         victim_node.alive = 'False'
         for v in victim_node.vectors():
@@ -222,11 +227,11 @@ class MafiaNetwork(Network):
         mafiosi = Node.query.filter_by(
             network_id=self.id, property2='True', type='mafioso'
         ).all()
-        winner = None
         nodes = Node.query.filter_by(
             network_id=self.id, property2='True'
         ).all()
-        if len(mafiosi) > len(nodes) - len(mafiosi) - 1: 
+        winner = None
+        if len(mafiosi) >= len(nodes) - len(mafiosi):
             winner = 'mafia'
             return victim_name, winner
         if len(mafiosi) == 0:
@@ -252,8 +257,11 @@ class MafiaNetwork(Network):
         mafiosi = Node.query.filter_by(
             network_id=self.id, property2='True', type='mafioso'
         ).all()
+        nodes = Node.query.filter_by(
+            network_id=self.id, property2='True'
+        ).all()
         winner = None
-        if len(mafiosi) > len(nodes) - len(mafiosi) - 1: 
+        if len(mafiosi) >= len(nodes) - len(mafiosi):
             winner = 'mafia'
             return victim_name, winner
         if len(mafiosi) == 0:
@@ -261,4 +269,3 @@ class MafiaNetwork(Network):
             return victim_name, winner
         self.fail_bystander_vectors()
         return victim_name, winner
-
