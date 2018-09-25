@@ -44,7 +44,8 @@ $(document).ready(function() {
         if (compQ3 == 2){ //TEMPORARY SWITCH BACK 1
           if (compQ4 == 2){ //TEMPORARY SWITCH BACK 1
             dallinger.allowExit();
-            window.location.href = '/waiting';
+            dallinger.goToPage("waiting");
+            // window.location.href = '/waiting';
             //document.getElementById("go-to-waiting-room").disabled = true
           }
         }
@@ -61,7 +62,7 @@ $(document).ready(function() {
   //   window.location.href = '/waiting';
   //   // }
   // });
-  
+
   // Send a message.
   $("#send-message").click(function() {
     send_message();
@@ -132,7 +133,7 @@ showParticipants = function(participantList, tag, subtag) {
     }
     if (tag == "#participants") {
       // don't allow participants to see / vote on themselves
-      if (name.indexOf("(you!)") == -1) { 
+      if (name.indexOf("(you!)") == -1) {
         $(tag).append('<' + subtag + '>' + name + '</' + subtag + '>');
       }
     }
@@ -181,8 +182,8 @@ check_phase = function() {
       }
       $("#narrator").html(resp.victim[0] + ", who is a " + resp.victim[1] + ", has been eliminated! The " + resp.winner + " have won!");
       $("#stimulus").show();
-      setTimeout(function () { leave_chatroom(); }, 4000);
-    // otherwise... 
+      setTimeout(function () { leave_chatroom(); }, 10000);
+    // otherwise...
     } else {
           if (resp.winner){
             window.alert("shouldn't be here")
@@ -285,7 +286,7 @@ send_message = function() {
 
   $(
     "#reply"
-  ).append("<p style='color: #853d0a;'>" + response + "</p>"); 
+  ).append("<p style='color: #853d0a;'>" + response + "</p>");
 
   $("#reproduction").val("");
   $("#reproduction").focus();

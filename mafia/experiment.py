@@ -7,6 +7,7 @@ import dallinger as dlgr
 from dallinger import db
 from dallinger.models import Node, Network, timenow
 from dallinger.nodes import Source
+from datetime import datetime
 from flask import Blueprint, Response
 from faker import Faker
 fake = Faker()
@@ -22,14 +23,14 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         self.models = models
 
         self.experiment_repeats = 1
-        self.num_participants = 7
-        # self.num_participants = 4
+        # self.num_participants = 6
+        self.num_participants = 5
+        self.num_mafia = 1
         # Note: can't do * 2.5 here, won't run even if the end result is an integer
         self.initial_recruitment_size = self.num_participants  # * 2
         self.quorum = self.num_participants
         if session:
             self.setup()
-        self.num_mafia = 1
         self.known_classes["Text"] = models.Text
         self.known_classes["Vote"] = models.Vote
 
@@ -57,13 +58,17 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         mafia_network.last_victim_name = None
         return mafia_network
 
+    def record_waiting_room_exit(self, player_id):
+        end_waiting_room = datetime.now().strftime(DATETIME_FORMAT)
+        self.participant.property1 = end_waiting_room
+
     def bonus(self, participant):
         """Give the participant a bonus for waiting."""
 
         DOLLARS_PER_HOUR = 5.0
         DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
         try:
-            end_waiting_room = datetime.datetime.strptime(participant.property1,
+            end_waiting_room = datetime.strptime(participant.property1,
                                                           DATETIME_FORMAT)
         except (TypeError, ValueError):
             # just in case something went wrong saving wait room end time
@@ -134,9 +139,9 @@ def phase(node_id, switches, was_daytime):
         node = nodes[-1]
         elapsed_time = timenow() - node.creation_time
         daytime = (net.daytime == 'True')
-        day_round_duration = 20 # TEMPORARY SWITCH BACK 150
-        night_round_duration = 10 # TEMPORARY SWITCH BACK 30
-        break_duration = 4 # this line ALSO gets set in experiment.js (hardcoded),            
+        day_round_duration = 60 # TEMPORARY SWITCH BACK 150
+        night_round_duration = 60 # TEMPORARY SWITCH BACK 30
+        break_duration = 10 # this line ALSO gets set in experiment.js (hardcoded),
         # // this is how long the "this person has been eliminatedTEMPORARY SWITCH BACK!" message gets displayed
         #    setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 6000);
         daybreak_duration = day_round_duration + break_duration
@@ -154,10 +159,10 @@ def phase(node_id, switches, was_daytime):
                 (switches + 1) / 2 * nightbreak_duration -
                 (((switches+1) / 2) -1) * daybreak_duration
             ) % day_round_duration
-        time = int(time) 
-        victim_name = net.last_victim_name 
+        time = int(time)
+        victim_name = net.last_victim_name
         victim_type = None
-        winner = net.winner 
+        winner = net.winner
         db.logger.exception('TEMPORARY INITIAL winner')
         db.logger.exception(winner)
 
@@ -171,9 +176,27 @@ def phase(node_id, switches, was_daytime):
             # If it's night but should be day, then call setup_daytime()
             db.logger.exception('TEMPORARY variable daytime')
             db.logger.exception(daytime)
-            if not daytime and (
+            if was_daytime != net.daytime:
+                nodes = Node.query.filter_by(network_id=net.id,
+                                             property2='True').all()
+                mafiosi = Node.query.filter_by(network_id=net.id,
+                                               property2='True',
+                                               type='mafioso').all()
+                victim_name = Node.query.filter_by(
+                    network_id=net.id,
+                    property2='False'
+                ).order_by('property3').all()[-1].property1
+                if len(mafiosi) >= len(nodes) - len(mafiosi):
+                    winner = 'mafia'
+                if len(mafiosi) == 0:
+                    winner = 'bystanders'
+                db.logger.exception('TEMPORARY was_daytime != net.daytime nodeID')
+                db.logger.exception(node_id)
+                db.logger.exception('TEMPORARY was_daytime != net.daytime winner')
+                db.logger.exception(winner)
+            elif not daytime and (
                 int(elapsed_time.total_seconds() -
-                    switches / 2 * daybreak_duration 
+                    switches / 2 * daybreak_duration
                     - (switches / 2) * nightbreak_duration
                     ) == night_round_duration):
                 victim_name, winner = net.setup_daytime()
@@ -192,31 +215,13 @@ def phase(node_id, switches, was_daytime):
                 db.logger.exception(node_id)
                 db.logger.exception('TEMPORARY after setup_nighttime winner')
                 db.logger.exception(winner)
-            elif was_daytime != net.daytime:
-                nodes = Node.query.filter_by(network_id=net.id,
-                                             property2='True').all()
-                mafiosi = Node.query.filter_by(network_id=net.id,
-                                               property2='True',
-                                               type='mafioso').all()
-                victim_name = Node.query.filter_by(
-                    network_id=net.id,
-                    property2='False'
-                ).order_by('property3').all()[-1].property1
-                if len(mafiosi) > len(nodes) - len(mafiosi) - 1:
-                    winner = 'mafia'
-                if len(mafiosi) == 0:
-                    winner = 'bystanders'
-                db.logger.exception('TEMPORARY was_daytime != net.daytime nodeID')
-                db.logger.exception(node_id)
-                db.logger.exception('TEMPORARY was_daytime != net.daytime winner')
-                db.logger.exception(winner)
-            
+
             # if game over is detected, save that knowledge
             # so it doesn't get overridden by future nodes running phase()
             # (this bit of code is absolutely necessary b/c otherwise
             #  the first node is in "daytime" and then the second node often
             #  goes to "was_daytime" and then the third node doesn't end)
-            if winner != None: 
+            if winner != None:
                 net.winner = winner
                 net.last_victim_name = victim_name
 
@@ -297,4 +302,3 @@ class Source(Source):
         """
 
         # Empty
-
