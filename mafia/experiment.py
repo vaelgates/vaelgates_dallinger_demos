@@ -24,7 +24,7 @@ class MafiaExperiment(dlgr.experiments.Experiment):
 
         self.experiment_repeats = 1
         # self.num_participants = 6
-        self.num_participants = 5
+        self.num_participants = 4
         self.num_mafia = 1
         # Note: can't do * 2.5 here, won't run even if the end result is an integer
         self.initial_recruitment_size = self.num_participants  # * 2
