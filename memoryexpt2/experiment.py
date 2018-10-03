@@ -146,6 +146,9 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
             gevent.sleep(0.1)
             msg = self.game.tick()
             if msg:
+                logger.info(
+                    "Sending: it's player {}'s turn.".format(msg['player_id'])
+                )
                 self.publish(msg)
 
     def publish(self, msg):
