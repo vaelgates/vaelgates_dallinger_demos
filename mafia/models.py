@@ -125,39 +125,57 @@ class MafiaNetwork(Network):
 
     @hybrid_property
     def winner(self):
-        """Convert property4 to winner."""
+        """Convert property2 to winner."""
         try:
-            return self.property4
+            return self.property2
         except TypeError:
             return None
 
     @winner.setter
     def winner(self, is_winner):
         """Make time settable."""
-        self.property4 = is_winner
+        self.property2 = is_winner
 
     @winner.expression
     def winner(self):
         """Make winner queryable."""
-        return self.property4
+        return self.property2
 
     @hybrid_property
     def last_victim_name(self):
-        """Convert property5 to last_victim_name."""
+        """Convert property3 to last_victim_name."""
         try:
-            return self.property5
+            return self.property3
         except TypeError:
             return None
 
     @last_victim_name.setter
     def last_victim_name(self, is_last_victim_name):
         """Make last_victim_name settable."""
-        self.property5 = is_last_victim_name
+        self.property3 = is_last_victim_name
 
     @last_victim_name.expression
     def last_victim_name(self):
         """Make last_victim_name queryable."""
-        return self.property5
+        return self.property3
+
+    @hybrid_property
+    def num_victims(self):
+        """Convert property4 to num_victims."""
+        try:
+            return int(self.property4)
+        except TypeError:
+            return None
+
+    @num_victims.setter
+    def num_victims(self, is_num_victims):
+        """Make num_victims settable."""
+        self.property4 = int(is_num_victims)
+
+    @num_victims.expression
+    def num_victims(self):
+        """Make num_victims queryable."""
+        return int(self.property4)
 
 
     def fail_bystander_vectors(self):
@@ -169,59 +187,72 @@ class MafiaNetwork(Network):
                     v.origin in mafiosi and v.destination in mafiosi):
                 v.fail()
 
-    def vote(self, nodes):
-        votes = {}
-        for node in nodes:
-            vote = node.property1
-            while vote == node.property1:
-                vote = choice(Node.query.filter_by(
-                    network_id=self.id,
-                    property2='True'
-                ).all()).property1 # random choice of participant to be eliminated
-            node_votes = Info.query.filter_by(
-                origin_id=node.id,
-                type='vote'
-            ).order_by('creation_time')
-            if node_votes.first() is not None:
-                node_vote = node_votes[-1].contents.split(': ')[1]
-                if Node.query.filter_by(
-                        property1=node_vote).one().property2 == 'True':
-                    vote = node_vote
-            if vote in votes:
-                votes[vote] += 1
-            else:
-                votes[vote] = 1
-        # k = list(votes.keys())
-        # v = list(votes.values())
-        sorted_kv = sorted(votes.items(), key=lambda kv: kv[0])
-        db.logger.exception('MONICA votes:')
-        db.logger.exception(sorted_kv)
-        # db.logger.exception(k)
-        # db.logger.exception(v)
-        #if all(v) == 0: #MONICA
-        # victim_name = k[v.index(max(v))]
-        victim_name, _ = max(sorted_kv, key=lambda kv: kv[1])
-        victim_node = Node.query.filter_by(property1=victim_name).one()
-        victim_node.alive = 'False'
-        for v in victim_node.vectors():
-            v.fail()
-        for i in victim_node.infos():
-            i.fail()
-        for t in victim_node.transmissions(direction="all"):
-            t.fail()
-        for t in victim_node.transformations():
-            t.fail()
-        victim_node.deathtime = timenow()
+    def vote(self, nodes, switches):
+        db.logger.exception('WHENNN')
+        db.logger.exception(switches)
+        db.logger.exception(self.num_victims)
+        if self.num_victims < switches:
+            votes = {}
+            for node in nodes:
+                vote = node.property1
+                while vote == node.property1:
+                    vote = choice(Node.query.filter_by(
+                        network_id=self.id,
+                        property2='True'
+                    ).all()).property1 # random choice of participant to be eliminated
+                node_votes = Info.query.filter_by(
+                    origin_id=node.id,
+                    type='vote'
+                ).order_by('creation_time')
+                if node_votes.first() is not None:
+                    node_vote = node_votes[-1].contents.split(': ')[1]
+                    if Node.query.filter_by(
+                            property1=node_vote).one().property2 == 'True':
+                        vote = node_vote
+                if vote in votes:
+                    votes[vote] += 1
+                else:
+                    votes[vote] = 1
+            # k = list(votes.keys())
+            # v = list(votes.values())
+            sorted_kv = sorted(votes.items(), key=lambda kv: kv[0])
+            db.logger.exception('MONICA votes:')
+            db.logger.exception(sorted_kv)
+            # db.logger.exception(k)
+            # db.logger.exception(v)
+            #if all(v) == 0: #MONICA
+            # victim_name = k[v.index(max(v))]
+            victim_name, _ = max(sorted_kv, key=lambda kv: kv[1])
+            self.last_victim_name = victim_name
+            victim_node = Node.query.filter_by(property1=victim_name).one()
+            victim_node.alive = 'False'
+            for v in victim_node.vectors():
+                v.fail()
+            for i in victim_node.infos():
+                i.fail()
+            for t in victim_node.transmissions(direction="all"):
+                t.fail()
+            for t in victim_node.transformations():
+                t.fail()
+            victim_node.deathtime = timenow()
+            self.num_victims += 1
+            db.logger.exception('WHYY')
+            db.logger.exception(switches)
+            db.logger.exception(self.num_victims)
+        else:
+            victim_name = self.last_victim_name
         return victim_name
 
-    def setup_daytime(self):
+    # def setup_daytime(self):
+    def setup_daytime(self, switches):
         # mafiosi = self.nodes(type=Mafioso)
         db.logger.exception('MONICA setup_daytime here')
         self.daytime = 'True'
         mafiosi = Node.query.filter_by(
             network_id=self.id, property2='True', type='mafioso'
         ).all()
-        victim_name = self.vote(mafiosi)
+        db.logger.exception('WHOOO')
+        victim_name = self.vote(mafiosi, switches)
         db.logger.exception('MONICA MAFIA VOTES victim_name')
         db.logger.exception(victim_name)
         mafiosi = Node.query.filter_by(
@@ -233,9 +264,11 @@ class MafiaNetwork(Network):
         winner = None
         if len(mafiosi) >= len(nodes) - len(mafiosi):
             winner = 'mafia'
+            self.winner = winner
             return victim_name, winner
-        if len(mafiosi) == 0:
+        elif len(mafiosi) == 0:
             winner = 'bystanders'
+            self.winner = winner
             return victim_name, winner
         # nodes = [n for n in self.nodes() if not isinstance(n, Source)]
         for n in nodes:
@@ -244,14 +277,15 @@ class MafiaNetwork(Network):
                     n.connect(whom=m, direction="to")
         return victim_name, winner
 
-    def setup_nighttime(self):
+    # def setup_nighttime(self):
+    def setup_nighttime(self, switches):
         # nodes = self.nodes()
         db.logger.exception('MONICA setup_nighttime here')
         self.daytime = 'False'
         nodes = Node.query.filter_by(
             network_id=self.id, property2='True'
         ).all()
-        victim_name = self.vote(nodes)
+        victim_name = self.vote(nodes, switches)
         db.logger.exception('MONICA EVERYONE VOTES victim_name')
         db.logger.exception(victim_name)
         mafiosi = Node.query.filter_by(
@@ -263,9 +297,11 @@ class MafiaNetwork(Network):
         winner = None
         if len(mafiosi) >= len(nodes) - len(mafiosi):
             winner = 'mafia'
+            self.winner = winner
             return victim_name, winner
-        if len(mafiosi) == 0:
+        elif len(mafiosi) == 0:
             winner = 'bystanders'
+            self.winner = winner
             return victim_name, winner
         self.fail_bystander_vectors()
         return victim_name, winner
