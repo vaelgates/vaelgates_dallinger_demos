@@ -136,7 +136,7 @@ class FreeFlowing(TurnType):
 
     @property
     def is_ready(self):
-        return len(self._players) == self.quorum
+        return len(self._players) >= .5 * self.quorum
 
     def tick(self):
         """We don't care"""
@@ -183,12 +183,12 @@ class FixedSequenceTurns(TurnType):
         return self._turn.is_expired
 
     @property
-    def all_players_have_joined(self):
-        return self.rotation.count == self.quorum
+    def enough_players_have_joined(self):
+        return self.rotation.count >= .5 * self.quorum
 
     @property
     def is_ready(self):
-        return self.all_players_have_joined
+        return self.enough_players_have_joined
 
     def tick(self):
         """Update play state and return any messages to be published"""
