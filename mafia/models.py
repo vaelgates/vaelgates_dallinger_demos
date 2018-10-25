@@ -194,12 +194,13 @@ class MafiaNetwork(Network):
         if self.num_victims < switches:
             votes = {}
             for node in nodes:
-                vote = node.property1
-                while vote == node.property1:
-                    vote = choice(Node.query.filter_by(
-                        network_id=self.id,
-                        property2='True'
-                    ).all()).property1 # random choice of participant to be eliminated
+                vote = None
+                # vote = node.property1
+                # while vote == node.property1:
+                #     vote = choice(Node.query.filter_by(
+                #         network_id=self.id,
+                #         property2='True'
+                #     ).all()).property1 # random choice of participant to be eliminated
                 node_votes = Info.query.filter_by(
                     origin_id=node.id,
                     type='vote'
@@ -209,10 +210,11 @@ class MafiaNetwork(Network):
                     if Node.query.filter_by(
                             property1=node_vote).one().property2 == 'True':
                         vote = node_vote
-                if vote in votes:
-                    votes[vote] += 1
-                else:
-                    votes[vote] = 1
+                if vote:
+                    if vote in votes:
+                        votes[vote] += 1
+                    else:
+                        votes[vote] = 1
             # k = list(votes.keys())
             # v = list(votes.values())
             sorted_kv = sorted(votes.items(), key=lambda kv: kv[0])
@@ -222,23 +224,26 @@ class MafiaNetwork(Network):
             # db.logger.exception(v)
             #if all(v) == 0: #MONICA
             # victim_name = k[v.index(max(v))]
-            victim_name, _ = max(sorted_kv, key=lambda kv: kv[1])
-            self.last_victim_name = victim_name
-            victim_node = Node.query.filter_by(property1=victim_name).one()
-            victim_node.alive = 'False'
-            for v in victim_node.vectors():
-                v.fail()
-            for i in victim_node.infos():
-                i.fail()
-            for t in victim_node.transmissions(direction="all"):
-                t.fail()
-            for t in victim_node.transformations():
-                t.fail()
-            victim_node.deathtime = timenow()
-            self.num_victims += 1
-            db.logger.exception('WHYY')
-            db.logger.exception(switches)
-            db.logger.exception(self.num_victims)
+            if sorted_kv:
+                victim_name, _ = max(sorted_kv, key=lambda kv: kv[1])
+                self.last_victim_name = victim_name
+                victim_node = Node.query.filter_by(property1=victim_name).one()
+                victim_node.alive = 'False'
+                for v in victim_node.vectors():
+                    v.fail()
+                for i in victim_node.infos():
+                    i.fail()
+                for t in victim_node.transmissions(direction="all"):
+                    t.fail()
+                for t in victim_node.transformations():
+                    t.fail()
+                victim_node.deathtime = timenow()
+                self.num_victims += 1
+                db.logger.exception('WHYY')
+                db.logger.exception(switches)
+                db.logger.exception(self.num_victims)
+            else:
+                victim_name = None
         else:
             victim_name = self.last_victim_name
         return victim_name
