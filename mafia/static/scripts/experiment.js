@@ -19,7 +19,7 @@ $(document).ready(function() {
     store.set("assignment_id", dallinger.getUrlParameter("assignment_id"));
     store.set("mode", dallinger.getUrlParameter("mode"));
 
-    window.location.href = '/instructions-1';
+    window.location.href = '/instructions-0';
   });
 
   // Consent to the experiment.
@@ -27,6 +27,11 @@ $(document).ready(function() {
     dallinger.allowExit();
     self.close();
   });
+
+    // Proceed to second page of instructions
+   $("#go-to-instructions-1").click(function() {
+     window.location.href = '/instructions-1';
+   });
 
    // Proceed to second page of instructions
   $("#go-to-instructions-2").click(function() {
