@@ -59,8 +59,8 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         super(CoordinationChatroom, self).__init__(session)
         config = dlgr.config.get_config()
         self.experiment_repeats = 1
-        self.num_participants = 2 #55 #55 #140 below
-        self.initial_recruitment_size = self.num_participants * 1 #note: can't do *2.5 here, won't run even if the end result is an integer
+        self.num_participants = 34 #55 #55 #140 below
+        self.initial_recruitment_size = self.num_participants * 2 #note: can't do *2.5 here, won't run even if the end result is an integer
         self.quorum = self.num_participants  # quorum is read by waiting room
         self.words_aloud = config.get(u'mexp_words_aloud', False)
         self.topology = topologies.by_name(
