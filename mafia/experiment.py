@@ -138,7 +138,7 @@ def phase(node_id, switches, was_daytime):
         # this is how long the "this person has been eliminatedTEMPORARY SWITCH BACK!" message gets displayed
         # setTimeout(function () { $("#stimulus").hide(); showExperiment(); }, 2000);
         day_round_duration = 150
-        night_round_duration = 30
+        night_round_duration = 60
         break_duration = 10 # this line ALSO gets set in experiment.js (hardcoded),
         # this is how long the "The game will begin shortly..." message gets displayed
         # setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 10000);
