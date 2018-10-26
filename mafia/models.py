@@ -159,27 +159,8 @@ class MafiaNetwork(Network):
         """Make last_victim_name queryable."""
         return self.property3
 
-    # @hybrid_property
-    # def num_victims(self):
-    #     """Convert property4 to num_victims."""
-    #     try:
-    #         return int(self.property4)
-    #     except TypeError:
-    #         return None
-    #
-    # @num_victims.setter
-    # def num_victims(self, is_num_victims):
-    #     """Make num_victims settable."""
-    #     self.property4 = int(is_num_victims)
-    #
-    # @num_victims.expression
-    # def num_victims(self):
-    #     """Make num_victims queryable."""
-    #     return int(self.property4)
-
 
     def fail_bystander_vectors(self):
-        # mafiosi = self.nodes(type=Mafioso)
         mafiosi = Node.query.filter_by(network_id=self.id,
                                        property2='True', type='mafioso').all()
         for v in self.vectors():
@@ -188,20 +169,9 @@ class MafiaNetwork(Network):
                 v.fail()
 
     def vote(self, nodes):
-    # def vote(self, nodes, switches):
-        db.logger.exception('WHENNN')
-        # db.logger.exception(switches)
-        # db.logger.exception(self.num_victims)
-        # if self.num_victims < switches:
         votes = {}
         for node in nodes:
             vote = None
-            # vote = node.property1
-            # while vote == node.property1:
-            #     vote = choice(Node.query.filter_by(
-            #         network_id=self.id,
-            #         property2='True'
-            #     ).all()).property1 # random choice of participant to be eliminated
             node_votes = Info.query.filter_by(
                 origin_id=node.id,
                 type='vote'
@@ -216,15 +186,7 @@ class MafiaNetwork(Network):
                     votes[vote] += 1
                 else:
                     votes[vote] = 1
-        # k = list(votes.keys())
-        # v = list(votes.values())
         sorted_kv = sorted(votes.items(), key=lambda kv: kv[0])
-        db.logger.exception('MONICA votes:')
-        db.logger.exception(sorted_kv)
-        # db.logger.exception(k)
-        # db.logger.exception(v)
-        #if all(v) == 0: #MONICA
-        # victim_name = k[v.index(max(v))]
         if sorted_kv:
             victim_name, _ = max(sorted_kv, key=lambda kv: kv[1])
             self.last_victim_name = victim_name
@@ -239,29 +201,16 @@ class MafiaNetwork(Network):
             for t in victim_node.transformations():
                 t.fail()
             victim_node.deathtime = timenow()
-            # self.num_victims += 1
-            db.logger.exception('WHYY')
-            # db.logger.exception(switches)
-            # db.logger.exception(self.num_victims)
         else:
             victim_name = None
-        # else:
-        #     victim_name = self.last_victim_name
         return victim_name
 
     def setup_daytime(self):
-    # def setup_daytime(self, switches):
-        # mafiosi = self.nodes(type=Mafioso)
-        db.logger.exception('MONICA setup_daytime here')
         self.daytime = 'True'
         mafiosi = Node.query.filter_by(
             network_id=self.id, property2='True', type='mafioso'
         ).all()
-        db.logger.exception('WHOOO')
         victim_name = self.vote(mafiosi)
-        # victim_name = self.vote(mafiosi, switches)
-        db.logger.exception('MONICA MAFIA VOTES victim_name')
-        db.logger.exception(victim_name)
         mafiosi = Node.query.filter_by(
             network_id=self.id, property2='True', type='mafioso'
         ).all()
@@ -277,7 +226,6 @@ class MafiaNetwork(Network):
             winner = 'bystanders'
             self.winner = winner
             return victim_name, winner
-        # nodes = [n for n in self.nodes() if not isinstance(n, Source)]
         for n in nodes:
             for m in nodes:
                 if n != m:
@@ -285,17 +233,11 @@ class MafiaNetwork(Network):
         return victim_name, winner
 
     def setup_nighttime(self):
-    # def setup_nighttime(self, switches):
-        # nodes = self.nodes()
-        db.logger.exception('MONICA setup_nighttime here')
         self.daytime = 'False'
         nodes = Node.query.filter_by(
             network_id=self.id, property2='True'
         ).all()
         victim_name = self.vote(nodes)
-        # victim_name = self.vote(nodes, switches)
-        db.logger.exception('MONICA EVERYONE VOTES victim_name')
-        db.logger.exception(victim_name)
         mafiosi = Node.query.filter_by(
             network_id=self.id, property2='True', type='mafioso'
         ).all()

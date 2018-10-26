@@ -23,9 +23,9 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         self.models = models
 
         self.experiment_repeats = 1
-        # self.num_participants = 6
-        self.num_participants = 7
-        self.num_mafia = 2
+        # self.num_participants = 7
+        self.num_participants = 4
+        self.num_mafia = 1
         # self.num_mafia = 2
         # Note: can't do * 2.5 here, won't run even if the end result is an integer
         self.initial_recruitment_size = self.num_participants  # * 2
@@ -57,7 +57,6 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         mafia_network.daytime = 'False'
         mafia_network.winner = None
         mafia_network.last_victim_name = None
-        # mafia_network.num_victims = 0
         return mafia_network
 
     def record_waiting_room_exit(self, player_id):
@@ -74,11 +73,8 @@ class MafiaExperiment(dlgr.experiments.Experiment):
                                                           DATETIME_FORMAT)
         except (TypeError, ValueError):
             # just in case something went wrong saving wait room end time
-            # last_participant_creation_time = Participant.query.filter_by(
-            #     ).order_by('creation_time')[-1].creation_time
             last_participant_creation_time = Participant.query.order_by('creation_time')[-1].creation_time
             end_waiting_room = last_participant_creation_time
-            # end_waiting_room = participant.end_time
         t = end_waiting_room - participant.creation_time
 
         # keep to two decimal points otherwise doesn't work
@@ -134,21 +130,15 @@ def phase(node_id, switches, was_daytime):
         net = Network.query.filter_by(id=this_node.network_id).one()
         nodes = Node.query.filter_by(network_id=net.id).order_by(
             'creation_time').all()
-        db.logger.exception("TEMPORARY this_node")
-        db.logger.exception(this_node)
-        db.logger.exception("TEMPORARY nodes")
-        db.logger.exception(nodes)
         nodes_temp = Node.query.filter_by(network_id=this_node.network_id,
                                          property2='True').all()
-        db.logger.exception("TEMPORARY nodes_temp")
-        db.logger.exception(nodes_temp)
         node = nodes[-1]
         elapsed_time = timenow() - node.creation_time
         start_duration = 2 # this line ALSO gets set in experiment.js (hardcoded),
         # this is how long the "this person has been eliminatedTEMPORARY SWITCH BACK!" message gets displayed
         # setTimeout(function () { $("#stimulus").hide(); showExperiment(); }, 2000);
-        day_round_duration = 30 # TEMPORARY SWITCH BACK 150
-        night_round_duration = 30 # TEMPORARY SWITCH BACK 30
+        day_round_duration = 150
+        night_round_duration = 30
         break_duration = 10 # this line ALSO gets set in experiment.js (hardcoded),
         # this is how long the "The game will begin shortly..." message gets displayed
         # setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 10000);
@@ -176,51 +166,18 @@ def phase(node_id, switches, was_daytime):
         victim_name = net.last_victim_name
         victim_type = None
         winner = net.winner
-        db.logger.exception('TEMPORARY INITIAL winner')
-        db.logger.exception(winner)
 
-        db.logger.exception("TEMPORARY net.winner at beginning")
-        db.logger.exception(net.winner)
         daytime = (net.daytime == 'True')
 
-        # if the game's over, skip all code below
-        # if winner is None:
-        # db.logger.exception('TEMPORARY ARRIVED winner')
-        # db.logger.exception(winner)
-        # # If it's night but should be day, then call setup_daytime()
-        # db.logger.exception('TEMPORARY variable daytime')
-        # db.logger.exception(daytime)
         if was_daytime != net.daytime:
             victim_name = net.last_victim_name
             winner = net.winner
-            # nodes = Node.query.filter_by(network_id=net.id,
-            #                              property2='True').all()
-            # mafiosi = Node.query.filter_by(network_id=net.id,
-            #                                property2='True',
-            #                                type='mafioso').all()
-            # victim_name = Node.query.filter_by(
-            #     network_id=net.id,
-            #     property2='False'
-            # ).order_by('property3').all()[-1].property1
-            # if len(mafiosi) >= len(nodes) - len(mafiosi):
-            #     winner = 'mafia'
-            # elif len(mafiosi) == 0:
-            #     winner = 'bystanders'
-            # db.logger.exception('TEMPORARY was_daytime != net.daytime nodeID')
-            # db.logger.exception(node_id)
-            # db.logger.exception('TEMPORARY was_daytime != net.daytime winner')
-            # db.logger.exception(winner)
         elif not daytime and (
             int(total_time -
                 switches / 2 * daybreak_duration
                 - (switches / 2) * nightbreak_duration
                 ) == night_round_duration):
             victim_name, winner = net.setup_daytime()
-            # victim_name, winner = net.setup_daytime(switches + 1)
-            db.logger.exception('not daytime')
-            db.logger.exception(node_id)
-            db.logger.exception('not daytime')
-            db.logger.exception(winner)
         # If it's day but should be night, then call setup_nighttime()
         elif daytime and (
             int(total_time -
@@ -228,38 +185,12 @@ def phase(node_id, switches, was_daytime):
                 - (((switches+1) / 2) -1) * daybreak_duration
                 ) == day_round_duration):
             victim_name, winner = net.setup_nighttime()
-            # victim_name, winner = net.setup_nighttime(switches + 1)
-            db.logger.exception('TEMPORARY after setup_nighttime nodeID')
-            db.logger.exception(node_id)
-            db.logger.exception('TEMPORARY after setup_nighttime winner')
-            db.logger.exception(winner)
 
-        # if game over is detected, save that knowledge
-        # so it doesn't get overridden by future nodes running phase()
-        # (this bit of code is absolutely necessary b/c otherwise
-        #  the first node is in "daytime" and then the second node often
-        #  goes to "was_daytime" and then the third node doesn't end)
-        # if winner != None:
-        #     net.winner = winner
-        #     net.last_victim_name = victim_name
-
-
-        db.logger.exception("TEMPORARY net.winner at end")
-        db.logger.exception(net.winner)
-
-        db.logger.exception('TEMPORARY nodeID')
-        db.logger.exception(node_id)
-        db.logger.exception('TEMPORARY winner')
-        db.logger.exception(winner)
-        db.logger.exception('TEMPORARY victim_name')
-        db.logger.exception(victim_name)
 
         exp.save()
 
         if victim_name:
             victim_type = Node.query.filter_by(property1=victim_name).one().type
-            db.logger.exception('TEMPORARY victim_type')
-            db.logger.exception(victim_type)
         else:
             victim_type = None
 
@@ -268,10 +199,6 @@ def phase(node_id, switches, was_daytime):
                 'time': time, 'daytime': net.daytime,
                 'victim_name': victim_name, 'victim_type': victim_type, 'winner': winner
             }),
-            # response=json.dumps({
-            #     'time': time, 'daytime': net.daytime,
-            #     'victim': [victim_name, victim_type], 'winner': winner
-            # }),
             status=200,
             mimetype='application/json')
     except Exception:

@@ -39,10 +39,10 @@ $(document).ready(function() {
     compQ2 = $("#compQ2").val()
     compQ3 = $("#compQ3").val()
     compQ4 = $("#compQ4").val()
-    if (compQ1 == 2) { //TEMPORARY SWITCH BACK 1
-      if (compQ2 == 2){ //TEMPORARY SWITCH BACK 1
-        if (compQ3 == 2){ //TEMPORARY SWITCH BACK 1
-          if (compQ4 == 2){ //TEMPORARY SWITCH BACK 1
+    if (compQ1 == 1) {
+      if (compQ2 == 1){
+        if (compQ3 == 1){
+          if (compQ4 == 1){
             dallinger.allowExit();
             dallinger.goToPage("waiting");
             // window.location.href = '/waiting';
@@ -171,8 +171,6 @@ check_phase = function() {
   deferred.then(function (resp) {
     // end game if there's a winner
     if (resp.winner) {
-      window.alert(resp.winner)
-      window.alert(currentNodeId)
       $("#player").hide();
       $("#clock").hide();
       $("#response-form").hide();
@@ -184,13 +182,9 @@ check_phase = function() {
       }
       $("#narrator").html(resp.victim_name + ", who is a " + resp.victim_type + ", has been eliminated! The " + resp.winner + " have won!");
       $("#stimulus").show();
-      setTimeout(function () { leave_chatroom(); }, 10000);
+      setTimeout(function () { leave_chatroom(); }, 8000);
     // otherwise...
     } else {
-          if (resp.winner){
-            window.alert("shouldn't be here")
-            window.alert(resp.winner)
-          }
           if (resp.daytime == 'True') {
             $('#remaining').html('Time remaining this day: ' + resp.time)
           } else {
