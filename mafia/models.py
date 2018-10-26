@@ -159,23 +159,23 @@ class MafiaNetwork(Network):
         """Make last_victim_name queryable."""
         return self.property3
 
-    @hybrid_property
-    def num_victims(self):
-        """Convert property4 to num_victims."""
-        try:
-            return int(self.property4)
-        except TypeError:
-            return None
-
-    @num_victims.setter
-    def num_victims(self, is_num_victims):
-        """Make num_victims settable."""
-        self.property4 = int(is_num_victims)
-
-    @num_victims.expression
-    def num_victims(self):
-        """Make num_victims queryable."""
-        return int(self.property4)
+    # @hybrid_property
+    # def num_victims(self):
+    #     """Convert property4 to num_victims."""
+    #     try:
+    #         return int(self.property4)
+    #     except TypeError:
+    #         return None
+    #
+    # @num_victims.setter
+    # def num_victims(self, is_num_victims):
+    #     """Make num_victims settable."""
+    #     self.property4 = int(is_num_victims)
+    #
+    # @num_victims.expression
+    # def num_victims(self):
+    #     """Make num_victims queryable."""
+    #     return int(self.property4)
 
 
     def fail_bystander_vectors(self):
@@ -239,10 +239,10 @@ class MafiaNetwork(Network):
             for t in victim_node.transformations():
                 t.fail()
             victim_node.deathtime = timenow()
-            self.num_victims += 1
+            # self.num_victims += 1
             db.logger.exception('WHYY')
-            db.logger.exception(switches)
-            db.logger.exception(self.num_victims)
+            # db.logger.exception(switches)
+            # db.logger.exception(self.num_victims)
         else:
             victim_name = None
         # else:
