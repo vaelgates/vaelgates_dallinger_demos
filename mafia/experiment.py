@@ -24,7 +24,7 @@ class MafiaExperiment(dlgr.experiments.Experiment):
 
         self.experiment_repeats = 1
         # self.num_participants = 6
-        self.num_participants = 5
+        self.num_participants = 7
         self.num_mafia = 2
         # self.num_mafia = 2
         # Note: can't do * 2.5 here, won't run even if the end result is an integer
@@ -57,7 +57,7 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         mafia_network.daytime = 'False'
         mafia_network.winner = None
         mafia_network.last_victim_name = None
-        mafia_network.num_victims = 0
+        # mafia_network.num_victims = 0
         return mafia_network
 
     def record_waiting_room_exit(self, player_id):
@@ -190,9 +190,9 @@ def phase(node_id, switches, was_daytime):
         # # If it's night but should be day, then call setup_daytime()
         # db.logger.exception('TEMPORARY variable daytime')
         # db.logger.exception(daytime)
-        # if was_daytime != net.daytime:
-        #     victim_name = net.last_victim_name
-        #     winner = net.winner
+        if was_daytime != net.daytime:
+            victim_name = net.last_victim_name
+            winner = net.winner
             # nodes = Node.query.filter_by(network_id=net.id,
             #                              property2='True').all()
             # mafiosi = Node.query.filter_by(network_id=net.id,
@@ -210,7 +210,7 @@ def phase(node_id, switches, was_daytime):
             # db.logger.exception(node_id)
             # db.logger.exception('TEMPORARY was_daytime != net.daytime winner')
             # db.logger.exception(winner)
-        if not daytime and (
+        elif not daytime and (
             int(total_time -
                 switches / 2 * daybreak_duration
                 - (switches / 2) * nightbreak_duration
