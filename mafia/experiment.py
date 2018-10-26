@@ -5,7 +5,7 @@ import random
 
 import dallinger as dlgr
 from dallinger import db
-from dallinger.models import Node, Network, timenow
+from dallinger.models import Node, Participant, Network, timenow
 from dallinger.nodes import Source
 from datetime import datetime
 from flask import Blueprint, Response
@@ -24,8 +24,8 @@ class MafiaExperiment(dlgr.experiments.Experiment):
 
         self.experiment_repeats = 1
         # self.num_participants = 6
-        self.num_participants = 6
-        self.num_mafia = 2
+        self.num_participants = 3
+        self.num_mafia = 1
         # self.num_mafia = 2
         # Note: can't do * 2.5 here, won't run even if the end result is an integer
         self.initial_recruitment_size = self.num_participants  # * 2
@@ -74,7 +74,11 @@ class MafiaExperiment(dlgr.experiments.Experiment):
                                                           DATETIME_FORMAT)
         except (TypeError, ValueError):
             # just in case something went wrong saving wait room end time
-            end_waiting_room = participant.end_time
+            # last_participant_creation_time = Participant.query.filter_by(
+            #     ).order_by('creation_time')[-1].creation_time
+            last_participant_creation_time = Participant.query.order_by('creation_time')[-1].creation_time
+            end_waiting_room = last_participant_creation_time
+            # end_waiting_room = participant.end_time
         t = end_waiting_room - participant.creation_time
 
         # keep to two decimal points otherwise doesn't work
@@ -140,23 +144,26 @@ def phase(node_id, switches, was_daytime):
         db.logger.exception(nodes_temp)
         node = nodes[-1]
         elapsed_time = timenow() - node.creation_time
-        day_round_duration = 60 # TEMPORARY SWITCH BACK 150
+        start_duration = 2 # this line ALSO gets set in experiment.js (hardcoded),
+        # this is how long the "this person has been eliminatedTEMPORARY SWITCH BACK!" message gets displayed
+        # setTimeout(function () { $("#stimulus").hide(); showExperiment(); }, 2000);
+        day_round_duration = 30 # TEMPORARY SWITCH BACK 150
         night_round_duration = 10 # TEMPORARY SWITCH BACK 30
         break_duration = 10 # this line ALSO gets set in experiment.js (hardcoded),
-        # // this is how long the "this person has been eliminatedTEMPORARY SWITCH BACK!" message gets displayed
-        #    setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 6000);
+        # this is how long the "The game will begin shortly..." message gets displayed
+        # setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 10000);
         daybreak_duration = day_round_duration + break_duration
         nightbreak_duration = night_round_duration + break_duration
-        time = elapsed_time.total_seconds()
+        time = elapsed_time.total_seconds() - start_duration
         if switches % 2 == 0:
             time = night_round_duration - (
-                elapsed_time.total_seconds() -
+                time -
                 switches / 2 * daybreak_duration -
                 (switches / 2) * nightbreak_duration
             ) % night_round_duration
         else:
             time = day_round_duration - (
-                elapsed_time.total_seconds() -
+                time -
                 (switches + 1) / 2 * nightbreak_duration -
                 (((switches+1) / 2) -1) * daybreak_duration
             ) % day_round_duration
@@ -201,7 +208,7 @@ def phase(node_id, switches, was_daytime):
             # db.logger.exception('TEMPORARY was_daytime != net.daytime winner')
             # db.logger.exception(winner)
         if not daytime and (
-            int(elapsed_time.total_seconds() -
+            int(time -
                 switches / 2 * daybreak_duration
                 - (switches / 2) * nightbreak_duration
                 ) == night_round_duration):
@@ -213,7 +220,7 @@ def phase(node_id, switches, was_daytime):
             db.logger.exception(winner)
         # If it's day but should be night, then call setup_nighttime()
         elif daytime and (
-            int(elapsed_time.total_seconds() -
+            int(time -
                 (switches + 1) / 2 * nightbreak_duration
                 - (((switches+1) / 2) -1) * daybreak_duration
                 ) == day_round_duration):
@@ -246,15 +253,22 @@ def phase(node_id, switches, was_daytime):
 
         exp.save()
 
-        victim_type = Node.query.filter_by(property1=victim_name).one().type
-        db.logger.exception('TEMPORARY victim_type')
-        db.logger.exception(victim_type)
+        if victim_name:
+            victim_type = Node.query.filter_by(property1=victim_name).one().type
+            db.logger.exception('TEMPORARY victim_type')
+            db.logger.exception(victim_type)
+        else:
+            victim_type = None
 
         return Response(
             response=json.dumps({
                 'time': time, 'daytime': net.daytime,
-                'victim': [victim_name, victim_type], 'winner': winner
+                'victim_name': victim_name, 'victim_type': victim_type, 'winner': winner
             }),
+            # response=json.dumps({
+            #     'time': time, 'daytime': net.daytime,
+            #     'victim': [victim_name, victim_type], 'winner': winner
+            # }),
             status=200,
             mimetype='application/json')
     except Exception:

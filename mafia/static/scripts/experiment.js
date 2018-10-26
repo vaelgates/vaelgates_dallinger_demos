@@ -89,7 +89,9 @@ create_agent = function() {
     currentNodeType = resp.node.type;
     $("#narrator").html("The game will begin shortly...");
     $("#stimulus").show();
+    // this is how long the "The game will begin shortly..." message gets displayed (ms)
     setTimeout(function () { $("#stimulus").hide(); showExperiment(); }, 2000);
+    // if you change this number you have to change it in "start_duration" in experiment.py
   }, function (err) {
     console.log(err);
     errorResponse = JSON.parse(err.response);
@@ -180,7 +182,7 @@ check_phase = function() {
         $("#note").hide();
         $("#vote-note").hide();
       }
-      $("#narrator").html(resp.victim[0] + ", who is a " + resp.victim[1] + ", has been eliminated! The " + resp.winner + " have won!");
+      $("#narrator").html(resp.victim_name + ", who is a " + resp.victim_type + ", has been eliminated! The " + resp.winner + " have won!");
       $("#stimulus").show();
       setTimeout(function () { leave_chatroom(); }, 10000);
     // otherwise...
@@ -205,7 +207,11 @@ check_phase = function() {
               $("#reply").append("<h5>Night " + ((switches / 2) + 1).toString() + "</h5>")
               $("#votes").append("<h5>Night " + ((switches / 2) + 1).toString() + "</h5>")
               document.body.style.backgroundColor = "royalblue";
-              $("#narrator").html(resp.victim[0] + ", who is a " + resp.victim[1] + ", has been eliminated!");
+              if (resp.victim_name) {
+                $("#narrator").html(resp.victim_name + ", who is a " + resp.victim_type + ", has been eliminated!");
+              } else {
+                $("#narrator").html("No one has been eliminated this round!");
+              }
               if (currentNodeType == 'mafioso') {
                 $("#note").html('These messages are private!');
                 $("#vote-note").html('These votes are private!');
@@ -217,7 +223,11 @@ check_phase = function() {
               $("#reply").append("<h5>Day " + ((switches + 1) / 2).toString() + "</h5>")
               $("#votes").append("<h5>Day " + ((switches + 1) / 2).toString() + "</h5>")
               document.body.style.backgroundColor = "lightskyblue";
-              $("#narrator").html(resp.victim[0] + " has been eliminated!");
+              if (resp.victim_name) {
+                $("#narrator").html(resp.victim_name + " has been eliminated!");
+              } else {
+                $("#narrator").html("No one has been eliminated this round!");
+              }
               if (currentNodeType == 'mafioso') {
                 $("#note").html('These messages are public!');
                 $("#vote-note").html('These votes are public!');
@@ -226,16 +236,26 @@ check_phase = function() {
               }
             }
             $("#stimulus").show();
-            if (resp.victim[0] == currentNodeName) {
-              setTimeout(function () { leave_chatroom(); }, 4000);
+            if (resp.victim_name == currentNodeName) {
+              // this is how long the "this person has been eliminated!" message gets displayed (ms)
+              setTimeout(function () { leave_chatroom(); }, 10000);
+              // if you change this number below you should change it here for consistency
             }
             getParticipants();
-            if (currentNodeType == 'mafioso' && resp.victim[1] == 'mafioso') {
+            if (currentNodeType == 'mafioso' && resp.victim_type == 'mafioso') {
               getMafia();
             }
             // this is how long the "this person has been eliminated!" message gets displayed (ms)
-            setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 6000);
+            setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 10000);
             // if you change this number you have to change it in "break_duration" in experiment.py
+          } else if (resp.time <= 10 && voted == false && (resp.daytime == 'True' || (resp.daytime == 'False' && currentNodeType == 'mafioso'))) {
+            if (resp.time == 1) {
+              $("#narrator").html("You have " + resp.time + " second remaining to vote. Please vote now!");
+            } else {
+              $("#narrator").html("You have " + resp.time + " seconds remaining to vote. Please vote now!");
+            }
+            $("#stimulus").show();
+            setTimeout(function () { get_transmissions(currentNodeId); }, 100);
           } else {
             setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 100);
           }
