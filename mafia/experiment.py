@@ -154,16 +154,16 @@ def phase(node_id, switches, was_daytime):
         # setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 10000);
         daybreak_duration = day_round_duration + break_duration
         nightbreak_duration = night_round_duration + break_duration
-        time = elapsed_time.total_seconds() - start_duration
+        total_time = elapsed_time.total_seconds() - start_duration
         if switches % 2 == 0:
             time = night_round_duration - (
-                time -
+                total_time -
                 switches / 2 * daybreak_duration -
                 (switches / 2) * nightbreak_duration
             ) % night_round_duration
         else:
             time = day_round_duration - (
-                time -
+                total_time -
                 (switches + 1) / 2 * nightbreak_duration -
                 (((switches+1) / 2) -1) * daybreak_duration
             ) % day_round_duration
@@ -208,7 +208,7 @@ def phase(node_id, switches, was_daytime):
             # db.logger.exception('TEMPORARY was_daytime != net.daytime winner')
             # db.logger.exception(winner)
         if not daytime and (
-            int(time -
+            int(total_time -
                 switches / 2 * daybreak_duration
                 - (switches / 2) * nightbreak_duration
                 ) == night_round_duration):
@@ -220,7 +220,7 @@ def phase(node_id, switches, was_daytime):
             db.logger.exception(winner)
         # If it's day but should be night, then call setup_nighttime()
         elif daytime and (
-            int(time -
+            int(total_time -
                 (switches + 1) / 2 * nightbreak_duration
                 - (((switches+1) / 2) -1) * daybreak_duration
                 ) == day_round_duration):
