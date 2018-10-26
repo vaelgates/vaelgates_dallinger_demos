@@ -24,8 +24,8 @@ class MafiaExperiment(dlgr.experiments.Experiment):
 
         self.experiment_repeats = 1
         # self.num_participants = 6
-        self.num_participants = 3
-        self.num_mafia = 1
+        self.num_participants = 5
+        self.num_mafia = 2
         # self.num_mafia = 2
         # Note: can't do * 2.5 here, won't run even if the end result is an integer
         self.initial_recruitment_size = self.num_participants  # * 2
@@ -154,7 +154,10 @@ def phase(node_id, switches, was_daytime):
         # setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 10000);
         daybreak_duration = day_round_duration + break_duration
         nightbreak_duration = night_round_duration + break_duration
-        total_time = elapsed_time.total_seconds() - start_duration
+        if elapsed_time.total_seconds() > start_duration:
+            total_time = elapsed_time.total_seconds() - start_duration
+        else:
+            total_time = 0
         if switches % 2 == 0:
             time = night_round_duration - (
                 total_time -
@@ -212,8 +215,8 @@ def phase(node_id, switches, was_daytime):
                 switches / 2 * daybreak_duration
                 - (switches / 2) * nightbreak_duration
                 ) == night_round_duration):
-            # victim_name, winner = net.setup_daytime()
-            victim_name, winner = net.setup_daytime(switches + 1)
+            victim_name, winner = net.setup_daytime()
+            # victim_name, winner = net.setup_daytime(switches + 1)
             db.logger.exception('not daytime')
             db.logger.exception(node_id)
             db.logger.exception('not daytime')
@@ -224,8 +227,8 @@ def phase(node_id, switches, was_daytime):
                 (switches + 1) / 2 * nightbreak_duration
                 - (((switches+1) / 2) -1) * daybreak_duration
                 ) == day_round_duration):
-            # victim_name, winner = net.setup_nighttime()
-            victim_name, winner = net.setup_nighttime(switches + 1)
+            victim_name, winner = net.setup_nighttime()
+            # victim_name, winner = net.setup_nighttime(switches + 1)
             db.logger.exception('TEMPORARY after setup_nighttime nodeID')
             db.logger.exception(node_id)
             db.logger.exception('TEMPORARY after setup_nighttime winner')

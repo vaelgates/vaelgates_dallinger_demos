@@ -248,7 +248,7 @@ check_phase = function() {
             // this is how long the "this person has been eliminated!" message gets displayed (ms)
             setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 10000);
             // if you change this number you have to change it in "break_duration" in experiment.py
-          } else if (resp.time <= 10 && voted == false && (resp.daytime == 'True' || (resp.daytime == 'False' && currentNodeType == 'mafioso'))) {
+          } else if (resp.time > 0 && resp.time <= 10 && voted == false && (resp.daytime == 'True' || (resp.daytime == 'False' && currentNodeType == 'mafioso'))) {
             if (resp.time == 1) {
               $("#narrator").html("You have " + resp.time + " second remaining to vote. Please vote now!");
             } else {
