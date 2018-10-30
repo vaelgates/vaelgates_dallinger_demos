@@ -24,11 +24,11 @@ class MafiaExperiment(dlgr.experiments.Experiment):
 
         self.experiment_repeats = 1
         # self.num_participants = 7
-        self.num_participants = 4
+        self.num_participants = 3
         self.num_mafia = 1
         # self.num_mafia = 2
         # Note: can't do * 2.5 here, won't run even if the end result is an integer
-        self.initial_recruitment_size = self.num_participants  # * 2
+        self.initial_recruitment_size = self.num_participants * 2
         self.quorum = self.num_participants
         if session:
             self.setup()
@@ -73,12 +73,16 @@ class MafiaExperiment(dlgr.experiments.Experiment):
                                                           DATETIME_FORMAT)
         except (TypeError, ValueError):
             # just in case something went wrong saving wait room end time
-            last_participant_creation_time = Participant.query.order_by('creation_time')[-1].creation_time
+            last_participant_creation_time = Participant.query.order_by('creation_time')[self.num_participants - 1].creation_time
             end_waiting_room = last_participant_creation_time
-        t = end_waiting_room - participant.creation_time
+        t = 0
+        performance_bonus = 0
+        if end_waiting_room >= participant.creation_time:
+            t = (end_waiting_room - participant.creation_time).total_seconds()
+            performance_bonus = 1.75
 
         # keep to two decimal points otherwise doesn't work
-        return round((t.total_seconds() / 3600) * DOLLARS_PER_HOUR, 2)
+        return round((t / 3600) * DOLLARS_PER_HOUR, 2) + performance_bonus
 
     def add_node_to_network(self, node, network):
         """Add node to the chain and receive transmissions."""
@@ -176,14 +180,14 @@ def phase(node_id, switches, was_daytime):
             int(total_time -
                 switches / 2 * daybreak_duration
                 - (switches / 2) * nightbreak_duration
-                ) == night_round_duration):
+                ) >= night_round_duration):
             victim_name, winner = net.setup_daytime()
         # If it's day but should be night, then call setup_nighttime()
         elif daytime and (
             int(total_time -
                 (switches + 1) / 2 * nightbreak_duration
-                - (((switches+1) / 2) -1) * daybreak_duration
-                ) == day_round_duration):
+                - (((switches + 1) / 2) - 1) * daybreak_duration
+                ) >= day_round_duration):
             victim_name, winner = net.setup_nighttime()
 
 
