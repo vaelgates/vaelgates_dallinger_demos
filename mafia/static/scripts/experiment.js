@@ -334,7 +334,7 @@ vote = function() {
     {contents: response, info_type: "Vote"}
   ).done(function (resp) {
     $("#vote").removeClass("disabled");
-    $("#vote").html("Vote");
+    $("#vote").html("Vote (not changeable!)");
   });
 };
 
