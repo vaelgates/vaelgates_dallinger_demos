@@ -4,8 +4,9 @@
 *.csv
 *.log
 *.pyc
-*/data/
-*/snapshots/
+*/data
+*/snapshots
 */didnotwork
 .DS_store
 *.zip
+*memoryexpt/snapshots
