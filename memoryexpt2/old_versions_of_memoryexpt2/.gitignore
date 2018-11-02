@@ -2,10 +2,10 @@
 .vscode/
 */node_modules/
 *.csv
+*.zip
 *.log
 *.pyc
-*/data
-*/snapshots
+*/data/
+*/snapshots/
 */didnotwork
 .DS_store
-*.zip
