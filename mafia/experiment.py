@@ -89,7 +89,9 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         network.add_node(node)
         source = network.nodes(type=Source)[0]  # find the source in the network
         source.connect(direction="to", whom=node)  # link up the source to the new node
-        source.transmit(to_whom=node)  # in networks.py code, transmit info to the new node
+        last_source_infos = source.infos()
+        if not last_source_infos:
+            source.transmit(to_whom=node)  # in networks.py code, transmit info to the new node
         node.receive()  # new node receives everything
 
     def info_post_request(self, node, info):
@@ -168,13 +170,17 @@ def phase(node_id, switches, was_daytime):
         winner = net.winner
 
         daytime = (net.daytime == 'True')
+        phase_map = {'True': 'Phase Change to Daytime', 'False': 'Phase Change to Nighttime'}
 
         if was_daytime != net.daytime:
             victim_name = net.last_victim_name
             winner = net.winner
             source = net.nodes(type=Source)[0]
-            if this_node.property2 == 'True':
-                source.transmit(to_whom=this_node)
+            last_source_info = source.infos()[-1]
+            if last_source_info.contents == phase_map[net.daytime]:
+                if this_node.property2 == 'True':
+                    source.transmit(to_whom=this_node)
+        # If it's night but should be day, then call setup_daytime()
         elif not daytime and (
             int(total_time -
                 switches / 2 * daybreak_duration
@@ -182,8 +188,10 @@ def phase(node_id, switches, was_daytime):
                 ) >= night_round_duration):
             victim_name, winner = net.setup_daytime()
             source = net.nodes(type=Source)[0]
-            if this_node.property2 == 'True':
-                source.transmit(to_whom=this_node)
+            last_source_info = source.infos()[-1]
+            if last_source_info.contents != phase_map[net.daytime]:
+                if this_node.property2 == 'True':
+                    source.transmit(to_whom=this_node)
         # If it's day but should be night, then call setup_nighttime()
         elif daytime and (
             int(total_time -
@@ -192,8 +200,10 @@ def phase(node_id, switches, was_daytime):
                 ) >= day_round_duration):
             victim_name, winner = net.setup_nighttime()
             source = net.nodes(type=Source)[0]
-            if this_node.property2 == 'True':
-                source.transmit(to_whom=this_node)
+            last_source_info = source.infos()[-1]
+            if last_source_info.contents != phase_map[net.daytime]:
+                if this_node.property2 == 'True':
+                    source.transmit(to_whom=this_node)
 
 
         exp.save()
