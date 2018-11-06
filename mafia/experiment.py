@@ -28,7 +28,7 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         self.num_mafia = 1
         # self.num_mafia = 2
         # Note: can't do * 2.5 here, won't run even if the end result is an integer
-        self.initial_recruitment_size = self.num_participants * 3
+        self.initial_recruitment_size = self.num_participants # * 3
         self.quorum = self.num_participants
         if session:
             self.setup()
@@ -134,8 +134,6 @@ def phase(node_id, switches, was_daytime):
         net = Network.query.filter_by(id=this_node.network_id).one()
         nodes = Node.query.filter_by(network_id=net.id).order_by(
             'creation_time').all()
-        nodes_temp = Node.query.filter_by(network_id=this_node.network_id,
-                                         property2='True').all()
         node = nodes[-1]
         elapsed_time = timenow() - node.creation_time
         start_duration = 2 # this line ALSO gets set in experiment.js (hardcoded),
@@ -165,8 +163,6 @@ def phase(node_id, switches, was_daytime):
                 (((switches+1) / 2) -1) * daybreak_duration
             ) % day_round_duration
         time = int(time)
-        # winner = None
-        # victim_name = None
         victim_name = net.last_victim_name
         victim_type = None
         winner = net.winner
@@ -176,12 +172,18 @@ def phase(node_id, switches, was_daytime):
         if was_daytime != net.daytime:
             victim_name = net.last_victim_name
             winner = net.winner
+            source = net.nodes(type=Source)[0]
+            if this_node.property2 == 'True':
+                source.transmit(to_whom=this_node)
         elif not daytime and (
             int(total_time -
                 switches / 2 * daybreak_duration
                 - (switches / 2) * nightbreak_duration
                 ) >= night_round_duration):
             victim_name, winner = net.setup_daytime()
+            source = net.nodes(type=Source)[0]
+            if this_node.property2 == 'True':
+                source.transmit(to_whom=this_node)
         # If it's day but should be night, then call setup_nighttime()
         elif daytime and (
             int(total_time -
@@ -189,6 +191,9 @@ def phase(node_id, switches, was_daytime):
                 - (((switches + 1) / 2) - 1) * daybreak_duration
                 ) >= day_round_duration):
             victim_name, winner = net.setup_nighttime()
+            source = net.nodes(type=Source)[0]
+            if this_node.property2 == 'True':
+                source.transmit(to_whom=this_node)
 
 
         exp.save()
@@ -257,4 +262,8 @@ class Source(Source):
         transmit() -> _what() -> create_information() -> _contents().
         """
 
-        # Empty
+        net = Network.query.filter_by(id=self.network_id).one()
+        if net.property1 == 'True':
+            return "Phase Change to Daytime"
+        else:
+            return "Phase Change to Nighttime"
