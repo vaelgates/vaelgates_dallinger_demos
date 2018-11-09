@@ -3,11 +3,11 @@ from setuptools import setup, find_packages
 
 setup_args = dict(
     name='dlgr.memoryexp',
-    version="5.0.0",
+    version="1.0.0",
     description='Demonstration experiments for Dallinger',
-    url='http://github.com/Dallinger/Dallinger',
-    maintainer='Jordan Suchow',
-    maintainer_email='suchow@berkeley.edu',
+    url='',
+    maintainer='Vael Gates',
+    maintainer_email='',
     license='MIT',
     keywords=['science', 'cultural evolution', 'experiments', 'psychology'],
     classifiers=[
