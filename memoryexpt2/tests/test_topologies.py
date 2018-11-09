@@ -1,6 +1,7 @@
 import mock
 import pytest
 from dallinger.models import Node
+from dallinger.models import Vector
 
 
 @pytest.mark.usefixtures('exp_module')
@@ -24,6 +25,15 @@ class TestKarateClub(object):
     def partners_of(self, participant_id):
         node = Node.query.filter_by(participant_id=participant_id).one()
         return [n.participant_id for n in node.neighbors()]
+
+    def participant_vectors(self):
+        vectors = [
+            (v.origin.participant_id, v.destination.participant_id)
+            for v in Vector.query.all()
+            if v.origin.participant_id is not None
+        ]
+
+        return sorted(vectors)
 
     def test_single_pair_is_mutually_connected(self, a, kclub):
         net = kclub.networks()[0]
@@ -78,4 +88,28 @@ class TestKarateClub(object):
 
         assert self.partners_of('1') == [
             4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 18, 20, 22, 32
+        ]
+
+    def test_real_participant_list(self, a, kclub):
+        net = kclub.networks()[0]
+        actually_participate = [
+            1, 4, 7, 11, 13, 16, 21, 22, 24, 28, 29, 30, 33, 36, 37, 38, 39, 42,
+            43, 44, 45, 46, 47, 48, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60,
+            61, 62, 63, 64, 65, 67, 69
+        ]
+        participants = [a.participant(worker_id=str(i)) for i in range(1, 70)]
+
+        for p in participants:
+            if p.id not in actually_participate:
+                continue
+            node = kclub.create_node(network=net, participant=p)
+            kclub.add_node_to_network(node, net)
+
+        vectors = self.participant_vectors()
+        ordered = [tuple(sorted(pair)) for pair in vectors]
+        deduped = sorted(list(set(sorted(ordered))))
+
+        assert deduped == [
+            (1, 4), (1, 7), (1, 11), (1, 13), (1, 22), (4, 13), (16, 33),
+            (21, 33), (24, 28), (24, 30), (24, 33), (30, 33)
         ]
