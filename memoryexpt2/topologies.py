@@ -12,7 +12,7 @@ class Topology(object):
     nickname = None
 
     def participant_edges(self):
-        return [(edge[0] + 1, edge[1] + 1) for edge in self. edges()]
+        return sorted([(edge[0] + 1, edge[1] + 1) for edge in self. edges()])
 
     def edges(self):
         return list(self.all_edges)

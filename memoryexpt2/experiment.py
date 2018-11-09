@@ -235,8 +235,6 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
 
     def add_node_to_network(self, node, network):
         """Add node to the chain and receive transmissions."""
-        logger.info(node)
-        logger.info(network)
         network.add_node(node)
         source = network.nodes(type=Source)[0]  # find the source in the network
         source.connect(direction="to", whom=node)  # link up the source to the new node
