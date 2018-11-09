@@ -6,7 +6,8 @@ import random
 import six
 
 import dallinger as dlgr
-from dallinger.heroku.worker import conn as redis
+# from dallinger.heroku.worker import conn as redis
+from dallinger.db import redis_conn
 from dallinger.models import Node
 from dallinger.nodes import Source
 from . import bonuses
@@ -153,7 +154,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
 
     def publish(self, msg):
         """Publish a message to all memoryexpt2 clients"""
-        redis.publish('memoryexpt2', json.dumps(msg))
+        redis_conn.publish('memoryexpt2', json.dumps(msg))
 
     def send(self, raw_message):
         """Socket interface; point of entry for incoming messages.
@@ -228,23 +229,25 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         bonus = bonuses.Bonus(participant)
         logger.info("For waiting: ${:.2f}, for words: ${:.2f}".format(
             bonus.for_waiting, bonus.for_words)
-         )
+        )
         # keep to two decimal points otherwise doesn't work
         return round(bonus.total, 2)
 
     def add_node_to_network(self, node, network):
         """Add node to the chain and receive transmissions."""
+        logger.info(node)
+        logger.info(network)
         network.add_node(node)
         source = network.nodes(type=Source)[0]  # find the source in the network
         source.connect(direction="to", whom=node)  # link up the source to the new node
         source.transmit(to_whom=node)  # in networks.py code, transmit info to the new node
         node.receive()  # new node receives everything
 
-        # walk through edges
-        for edge in self.topology.edges():
+        # walk through each pair of possible partners by participant ID
+        for edge in self.topology.participant_edges():
             try:
-                node0 = Node.query.filter_by(participant_id=edge[0]+1).one()
-                node1 = Node.query.filter_by(participant_id=edge[1]+1).one()
+                node0 = Node.query.filter_by(participant_id=edge[0]).one()
+                node1 = Node.query.filter_by(participant_id=edge[1]).one()
                 node0.connect(direction="from", whom=node1)  # connect backward
                 node1.connect(direction="from", whom=node0)  # connect forward
 

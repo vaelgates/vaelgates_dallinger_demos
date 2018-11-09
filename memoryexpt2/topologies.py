@@ -11,8 +11,20 @@ class Topology(object):
     network = Empty
     nickname = None
 
+    def participant_edges(self):
+        return [(edge[0] + 1, edge[1] + 1) for edge in self. edges()]
+
     def edges(self):
         return list(self.all_edges)
+
+    def potential_partners(self, participant_id):
+        partners = []
+        for pair in self.participant_edges():
+            if participant_id in pair:
+                partner_id = [pid for pid in pair if pid != participant_id][0]
+                partners.append(partner_id)
+
+        return sorted(partners)
 
     def __repr__(self):
         return "%s (%s)" % (self.__class__.__name__, self.network)
