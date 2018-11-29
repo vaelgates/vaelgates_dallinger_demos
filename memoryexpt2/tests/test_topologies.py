@@ -1,7 +1,44 @@
 import mock
 import pytest
 from dallinger.models import Node
+from dallinger.models import Participant
 from dallinger.models import Vector
+from dallinger.nodes import Agent
+
+
+@pytest.mark.usefixtures('exp_module')
+class TestTopology(object):
+
+    @pytest.fixture
+    def topology(self, exp_module):
+        return exp_module.topologies.Baby2(max_size=3)
+
+    @pytest.fixture
+    def nodes(self, topology, db_session):
+        nodes = []
+        for i in range(3):
+            participant = Participant(
+                recruiter_id='testing',
+                worker_id='worker_%d' % i,
+                assignment_id='assignment_%d' % i,
+                hit_id='hit_%d' % i,
+                mode='testing',
+                fingerprint_hash='fingerprint_%d' % i,
+            )
+            db_session.add(participant)
+            participant.status = 'working'
+            node = Agent(network=topology, participant=participant)
+            db_session.add(node)
+            topology.add_node(node)
+            nodes.append(node)
+        return nodes
+
+    def test_topology_links_based_on_edges(self, topology, nodes):
+        assert len(nodes) == 3
+        assert len(topology.nodes()) == 3
+        assert nodes[0].neighbors() == [nodes[1], nodes[2]]
+        assert nodes[1].neighbors() == [nodes[0]]
+        assert nodes[2].neighbors() == [nodes[0]]
 
 
 @pytest.mark.usefixtures('exp_module')
@@ -42,14 +79,17 @@ class TestKarateClub(object):
 
         return deduped
 
-    def test_single_pair_is_mutually_connected(self, a, experiment):
+    def test_single_pair_is_mutually_connected(self, a, experiment, db_session):
         net = experiment.networks()[0]
         p1 = a.participant(worker_id='1')
         p2 = a.participant(worker_id='2')
         node1 = a.node(network=net, participant=p1)
         node2 = a.node(network=net, participant=p2)
+        db_session.add(node1)
+        db_session.add(node2)
 
         experiment.add_node_to_network(node1, net)
+        experiment.add_node_to_network(node2, net)
 
         node1.is_connected(node2)
         node2.is_connected(node1)
@@ -78,8 +118,8 @@ class TestKarateClub(object):
             2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 18, 20, 22, 32
         ]
 
-        assert self.partners_of('1') == experiment.topology.potential_partners(1)
-        assert self.partners_of('5') == experiment.topology.potential_partners(5)
-        assert self.partners_of('13') == experiment.topology.potential_partners(13)
-        assert self.partners_of('34') == experiment.topology.potential_partners(34)
-        assert self.unique_participant_vectors() == experiment.topology.participant_edges()
+        assert self.partners_of('1') == net.potential_partners(1)
+        assert self.partners_of('5') == net.potential_partners(5)
+        assert self.partners_of('13') == net.potential_partners(13)
+        assert self.partners_of('34') == net.potential_partners(34)
+        assert self.unique_participant_vectors() == net.participant_edges()
