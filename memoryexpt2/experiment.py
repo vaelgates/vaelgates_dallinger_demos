@@ -221,7 +221,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
     def create_network(self):
         """Create a new network by reading the configuration file."""
         logger.info("Using the {} network".format(self.topology))
-        return self.topology.network(max_size=self.num_participants + 1)  # add a Source
+        return self.topology(max_size=self.num_participants + 1)  # add a Source
 
     def bonus(self, participant):
         """Return a total bonus for a participant.
@@ -240,17 +240,6 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         source.connect(direction="to", whom=node)  # link up the source to the new node
         source.transmit(to_whom=node)  # in networks.py code, transmit info to the new node
         node.receive()  # new node receives everything
-
-        # walk through each pair of possible partners by participant ID
-        for edge in self.topology.participant_edges():
-            try:
-                node0 = Node.query.filter_by(participant_id=edge[0]).one()
-                node1 = Node.query.filter_by(participant_id=edge[1]).one()
-                node0.connect(direction="from", whom=node1)  # connect backward
-                node1.connect(direction="from", whom=node0)  # connect forward
-
-            except Exception:
-                pass
 
     def info_post_request(self, node, info):
         """Run when a request to create an info is complete."""
