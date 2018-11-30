@@ -6,6 +6,14 @@ from dallinger.models import Vector
 from dallinger.nodes import Agent
 
 
+def assertItemsEqual(a, b):
+    temp = b[:]
+    for item in a:
+        assert item in temp
+        temp.remove(item)
+    assert not temp
+
+
 @pytest.mark.usefixtures('exp_module')
 class TestTopology(object):
 
@@ -14,9 +22,13 @@ class TestTopology(object):
         return exp_module.topologies.Baby2(max_size=3)
 
     @pytest.fixture
-    def nodes(self, topology, db_session):
+    def second_topology(self, exp_module):
+        return exp_module.topologies.Baby2(max_size=3)
+
+    @pytest.fixture
+    def nodes(self, topology, db_session, n=3):
         nodes = []
-        for i in range(3):
+        for i in range(n):
             participant = Participant(
                 recruiter_id='testing',
                 worker_id='worker_%d' % i,
@@ -39,6 +51,35 @@ class TestTopology(object):
         assert nodes[0].neighbors() == [nodes[1], nodes[2]]
         assert nodes[1].neighbors() == [nodes[0]]
         assert nodes[2].neighbors() == [nodes[0]]
+
+    def test_topology_handles_out_of_order_nodes(self, db_session, topology, second_topology):
+        """This tests that the topology based networks do not directly use participant or node
+        primary keys in determining where in the preset edge graph a given node is"""
+        # Fill two networks simultaneously with newly created nodes
+        self.nodes(topology, db_session, n=2)
+        self.nodes(second_topology, db_session, n=2)
+        self.nodes(topology, db_session, n=1)
+        self.nodes(second_topology, db_session, n=1)
+
+        # These topologies have non-contiguous node ids
+        assert {node.id for node in topology.nodes()} == {1, 2, 5}
+        assert {node.id for node in second_topology.nodes()} == {3, 4, 6}
+
+        # Their edge graph is still internally consistent
+        assertItemsEqual([
+                set(neighbor.id for neighbor in node.neighbors())
+                for node in topology.nodes()
+            ],
+            [{2, 5}, {1}, {1}]
+        )
+
+        assertItemsEqual([
+                set(neighbor.id for neighbor in node.neighbors())
+                for node in second_topology.nodes()
+            ],
+            [{4, 6}, {3}, {3}]
+        )
+
 
 
 @pytest.mark.usefixtures('exp_module')
@@ -85,8 +126,6 @@ class TestKarateClub(object):
         p2 = a.participant(worker_id='2')
         node1 = a.node(network=net, participant=p1)
         node2 = a.node(network=net, participant=p2)
-        db_session.add(node1)
-        db_session.add(node2)
 
         experiment.add_node_to_network(node1, net)
         experiment.add_node_to_network(node2, net)

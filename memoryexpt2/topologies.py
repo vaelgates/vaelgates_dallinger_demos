@@ -33,17 +33,20 @@ class BaseTopology(object):
 
         return sorted(partners)
 
-    def __repr__(self):
-        return "<%sTopology network>" % (self.__class__.__name__)
-
     def add_node(self, node):
         """Add a node, connecting it to everyone and back."""
+        # Newly created nodes might not be flushed to the database yet
+        # which would cause indexing errors.
         Session.object_session(node).flush()
+        # The nodes are keyed on id, as the id is managed by the database
+        # and is guaranteed not to collide
         nodes = sorted(self.nodes(type=Agent), key=lambda x:x.id)
+
+        # Get the index that this node represents, and the edges that are required
         my_index = nodes.index(node)
         relevant_edges = [edge for edge in self.edges() if my_index in edge]
         for edge in relevant_edges:
-            other_user = (set(edge) - set([my_index])).pop()
+            other_user = [vertex for vertex in edge if vertex != my_index][0]
             try:
                 node.connect(direction="both", whom=nodes[other_user])
             except IndexError:
