@@ -4,6 +4,7 @@ Test fixtures for `dlgr.memoryexp` module.
 import pytest
 from dallinger import models
 from dallinger import networks
+from dallinger import nodes
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -141,7 +142,7 @@ def a(db_session):
                 'network': self.empty
             }
             defaults.update(kw)
-            return self._build(models.Node, defaults)
+            return self._build(nodes.Agent, defaults)
 
         def _build(self, klass, attrs):
             # Some of our default values are factories:
