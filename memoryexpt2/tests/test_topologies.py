@@ -144,7 +144,7 @@ class TestKarateClub(object):
     def test_perfect_full_network(self, a, experiment, dbview):
         net = experiment.networks()[0]
         nodes = []
-        participants = [a.participant(worker_id=str(i)) for i in range(1, 35)]
+        participants = [a.participant(worker_id=str(i)) for i in range(34)]
         for p in participants:
             node = experiment.create_node(network=net, participant=p)
             experiment.add_node_to_network(node, net)
