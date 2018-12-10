@@ -15,6 +15,7 @@ from . import games
 from . import topologies
 from . import transmission
 from . import models
+from . import query
 
 
 logger = logging.getLogger(__file__)
@@ -78,6 +79,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         ))
         self.enforce_turns = self.game.enforce_turns  # Configures front-end
         self.models = models
+        self.q = query.Query()
         self.known_classes["Fillerans"] = models.Fillerans
         if session:
             self.setup()
@@ -240,6 +242,9 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         source.connect(direction="to", whom=node)  # link up the source to the new node
         source.transmit(to_whom=node)  # in networks.py code, transmit info to the new node
         node.receive()  # new node receives everything
+        print("New node index: {}".format(self.q.index_of(node)))
+        print("Partners: {}".format(self.q.partner_indexes(node)))
+        print("Current vectors: {}".format(self.q.unique_agent_index_vectors()))
 
     def info_post_request(self, node, info):
         """Run when a request to create an info is complete."""
