@@ -1,12 +1,10 @@
 import logging
-import time
 from sqlalchemy.orm.session import Session
 
 from dallinger.networks import Empty
 from dallinger.networks import FullyConnected
 from dallinger.networks import Network
 from dallinger.nodes import Agent
-from dallinger.nodes import Source
 
 logger = logging.getLogger(__name__)
 
@@ -54,8 +52,10 @@ class BaseTopology(object):
                 # when it does
                 continue
 
+
 class Topology(BaseTopology, Network):
     pass
+
 
 class Nominal(Empty, BaseTopology):
     """Participants play in isolation, with no transmissions to or from
