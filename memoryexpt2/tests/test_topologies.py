@@ -152,3 +152,5 @@ class TestKarateClub(object):
 
         for idx, node in enumerate(nodes):
             assert dbview.partner_indexes(node) == net.potential_partners(idx)
+
+        dbview.unique_agent_index_vectors() == net.edges()

@@ -17,7 +17,7 @@ class BaseTopology(object):
     __mapper_args__ = {"polymorphic_identity": nickname}
 
     def edges(self):
-        return list(self.all_edges)
+        return sorted(self.all_edges)
 
     def potential_partners(self, index):
         partners = []
