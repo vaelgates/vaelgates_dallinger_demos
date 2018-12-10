@@ -1,8 +1,6 @@
 import mock
 import pytest
-from dallinger.models import Node
 from dallinger.models import Participant
-from dallinger.models import Vector
 from dallinger.nodes import Agent
 
 
@@ -12,6 +10,24 @@ def assertItemsEqual(a, b):
         assert item in temp
         temp.remove(item)
     assert not temp
+
+
+class TestBaseTopology(object):
+
+    @pytest.fixture
+    def topology(self, exp_module):
+
+        class TestTopology(exp_module.topologies.BaseTopology):
+            nickname = u'test'
+            all_edges = [(0, 1), (0, 2), (0, 3), (2, 3)]
+
+        return TestTopology()
+
+    def test_potential_partners_returns_predefined_node_indexes(self, topology):
+        assert topology.potential_partners(0) == [1, 2, 3]
+        assert topology.potential_partners(1) == [0]
+        assert topology.potential_partners(2) == [0, 3]
+        assert topology.potential_partners(3) == [0, 2]
 
 
 @pytest.mark.usefixtures('exp_module')
@@ -52,7 +68,7 @@ class TestTopology(object):
         assert nodes[1].neighbors() == [nodes[0]]
         assert nodes[2].neighbors() == [nodes[0]]
 
-    def test_topology_handles_out_of_order_nodes(self, db_session, topology, second_topology):
+    def test_topology_handles_out_of_order_nodes(self, db_session, topology, second_topology, dbview):
         """This tests that the topology based networks do not directly use participant or node
         primary keys in determining where in the preset edge graph a given node is"""
         # Fill two networks simultaneously with newly created nodes
@@ -81,7 +97,6 @@ class TestTopology(object):
         )
 
 
-
 @pytest.mark.usefixtures('exp_module')
 class TestKarateClub(object):
 
@@ -100,27 +115,7 @@ class TestKarateClub(object):
         chatroom.session.rollback()
         chatroom.session.close()
 
-    def partners_of(self, participant_id):
-        node = Node.query.filter_by(participant_id=participant_id).one()
-        return [n.participant_id for n in node.neighbors()]
-
-    def participant_vectors(self):
-        vectors = [
-            (v.origin.participant_id, v.destination.participant_id)
-            for v in Vector.query.all()
-            if v.origin.participant_id is not None
-        ]
-
-        return sorted(vectors)
-
-    def unique_participant_vectors(self):
-        vectors = self.participant_vectors()
-        ordered = [tuple(sorted(pair)) for pair in vectors]
-        deduped = sorted(list(set(sorted(ordered))))
-
-        return deduped
-
-    def test_single_pair_is_mutually_connected(self, a, experiment, db_session):
+    def test_single_pair_is_mutually_connected(self, a, experiment):
         net = experiment.networks()[0]
         p1 = a.participant(worker_id='1')
         p2 = a.participant(worker_id='2')
@@ -133,32 +128,27 @@ class TestKarateClub(object):
         node1.is_connected(node2)
         node2.is_connected(node1)
 
-    def test_ten_pairs(self, a, experiment):
+    def test_ten_pairs(self, a, experiment, dbview):
         net = experiment.networks()[0]
-        # participants have IDs '1 through '20':
-        participants = [a.participant(worker_id=str(i)) for i in range(1, 21)]
+        nodes = []
+        participants = [a.participant(worker_id=str(i)) for i in range(20)]
         for p in participants:
             node = experiment.create_node(network=net, participant=p)
             experiment.add_node_to_network(node, net)
+            nodes.append(node)
 
-        assert self.partners_of('1') == [
-            2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 18, 20
+        assert dbview.partner_indexes(nodes[0]) == [
+            1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 17, 19
         ]
 
-    def test_perfect_full_network(self, a, experiment):
+    def test_perfect_full_network(self, a, experiment, dbview):
         net = experiment.networks()[0]
-        # participants have IDs '1 through '34':
+        nodes = []
         participants = [a.participant(worker_id=str(i)) for i in range(1, 35)]
         for p in participants:
             node = experiment.create_node(network=net, participant=p)
             experiment.add_node_to_network(node, net)
+            nodes.append(node)
 
-        assert self.partners_of('1') == [
-            2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 18, 20, 22, 32
-        ]
-
-        assert self.partners_of('1') == net.potential_partners(1)
-        assert self.partners_of('5') == net.potential_partners(5)
-        assert self.partners_of('13') == net.potential_partners(13)
-        assert self.partners_of('34') == net.potential_partners(34)
-        assert self.unique_participant_vectors() == net.participant_edges()
+        for idx, node in enumerate(nodes):
+            assert dbview.partner_indexes(node) == net.potential_partners(idx)

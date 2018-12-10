@@ -16,18 +16,15 @@ class BaseTopology(object):
     all_edges = NotImplemented
     __mapper_args__ = {"polymorphic_identity": nickname}
 
-    def participant_edges(self):
-        return sorted([(edge[0] + 1, edge[1] + 1) for edge in self.edges()])
-
     def edges(self):
         return list(self.all_edges)
 
-    def potential_partners(self, participant_id):
+    def potential_partners(self, index):
         partners = []
-        for pair in self.participant_edges():
-            if participant_id in pair:
-                partner_id = [pid for pid in pair if pid != participant_id][0]
-                partners.append(partner_id)
+        for edge in self.edges():
+            if index in edge:
+                other_user = [vertex for vertex in edge if vertex != index][0]
+                partners.append(other_user)
 
         return sorted(partners)
 

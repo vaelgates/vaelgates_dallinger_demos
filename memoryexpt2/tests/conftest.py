@@ -100,6 +100,37 @@ def exp_module(active_config, exp_klass):
 
 
 @pytest.fixture
+def dbview():
+    """A class for performing DB queries"""
+
+    class Query(object):
+
+        def partner_indexes(self, node):
+            agents = nodes.Agent.query.all()
+            node_index = agents.index(node)
+            neighbors = agents[node_index].neighbors()
+            return [agents.index(n) for n in neighbors]
+
+        def participant_vectors(self):
+            vectors = [
+                (v.origin.id, v.destination.id)
+                for v in models.Vector.query.all()
+                if v.origin.participant_id is not None
+            ]
+
+            return sorted(vectors)
+
+        def unique_participant_vectors(self):
+            vectors = self.participant_vectors()
+            ordered = [tuple(sorted(pair)) for pair in vectors]
+            deduped = sorted(list(set(sorted(ordered))))
+
+            return deduped
+
+    return Query()
+
+
+@pytest.fixture
 def a(db_session):
     """ Provides a standard way of building model objects in tests.
 
