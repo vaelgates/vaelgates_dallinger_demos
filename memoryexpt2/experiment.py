@@ -237,6 +237,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
 
     def add_node_to_network(self, node, network):
         """Add node to the chain and receive transmissions."""
+        self.lock_table('node')
         network.add_node(node)
         source = network.nodes(type=Source)[0]  # find the source in the network
         source.connect(direction="to", whom=node)  # link up the source to the new node
@@ -262,6 +263,17 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
     def create_node(self, participant, network):
         """Create a node for a participant."""
         return dlgr.nodes.Agent(network=network, participant=participant)
+
+    def lock_table(self, table_name):
+        # Lock a table, triggering multiple simultaneous accesses to fail
+        from sqlalchemy import exc
+        from psycopg2.extensions import TransactionRollbackError
+        command = "LOCK TABLE {} IN EXCLUSIVE MODE NOWAIT".format(table_name)
+        try:
+            self.session.connection().execute(command)
+        except exc.OperationalError as e:
+            e.orig = TransactionRollbackError()
+            raise e
 
 
 class FreeRecallListSource(Source):
