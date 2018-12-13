@@ -268,7 +268,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         # Lock a table, triggering multiple simultaneous accesses to fail
         from sqlalchemy import exc
         from psycopg2.extensions import TransactionRollbackError
-        command = "LOCK TABLE {} IN EXCLUSIVE MODE NOWAIT".format(table_name)
+        command = "LOCK TABLE {} IN EXCLUSIVE MODE".format(table_name)
         try:
             self.session.connection().execute(command)
         except exc.OperationalError as e:
