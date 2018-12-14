@@ -237,14 +237,19 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
 
     def add_node_to_network(self, node, network):
         """Add node to the chain and receive transmissions."""
+        self.lock_table('node')
         network.add_node(node)
         source = network.nodes(type=Source)[0]  # find the source in the network
         source.connect(direction="to", whom=node)  # link up the source to the new node
         source.transmit(to_whom=node)  # in networks.py code, transmit info to the new node
         node.receive()  # new node receives everything
-        print("New node index: {}".format(self.q.index_of(node)))
-        print("Partners: {}".format(self.q.partner_indexes(node)))
-        print("Current vectors: {}".format(self.q.unique_agent_index_vectors()))
+        logger.info("New node! Index, ID and Participant: {}, {}, {}".format(
+            node.id, self.q.index_of(node), node.participant_id)
+        )
+        logger.info("Partners: {}".format(self.q.partner_indexes(node)))
+        logger.info("Current vectors: {}".format(
+            self.q.unique_agent_index_vectors())
+        )
 
     def info_post_request(self, node, info):
         """Run when a request to create an info is complete."""
@@ -258,6 +263,17 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
     def create_node(self, participant, network):
         """Create a node for a participant."""
         return dlgr.nodes.Agent(network=network, participant=participant)
+
+    def lock_table(self, table_name):
+        # Lock a table, triggering multiple simultaneous accesses to fail
+        from sqlalchemy import exc
+        from psycopg2.extensions import TransactionRollbackError
+        command = "LOCK TABLE {} IN EXCLUSIVE MODE".format(table_name)
+        try:
+            self.session.connection().execute(command)
+        except exc.OperationalError as e:
+            e.orig = TransactionRollbackError()
+            raise e
 
 
 class FreeRecallListSource(Source):

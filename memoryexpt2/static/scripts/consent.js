@@ -1,6 +1,6 @@
-/*global $, dallinger, store */
+/*global $, dallinger */
 
-(function ($, dallinger, store) {
+(function ($, dallinger) {
 
     var go = {
         leave: function () {
@@ -21,10 +21,6 @@
 
         // Consent to the experiment.
         $("#consent").click(function() {
-            store.set("hit_id", dallinger.getUrlParameter("hit_id"));
-            store.set("worker_id", dallinger.getUrlParameter("worker_id"));
-            store.set("assignment_id", dallinger.getUrlParameter("assignment_id"));
-            store.set("mode", dallinger.getUrlParameter("mode"));
             go.instructions();
         });
 
@@ -34,4 +30,4 @@
         });
 
     });
-}($, dallinger, store));
+}($, dallinger));
