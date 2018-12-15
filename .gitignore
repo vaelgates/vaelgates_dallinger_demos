@@ -1,5 +1,6 @@
 .idea/
 .vscode/
+*.egg-info/
 */node_modules/
 *.csv
 *.log
