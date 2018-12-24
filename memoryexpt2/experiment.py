@@ -243,7 +243,7 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
         source.connect(direction="to", whom=node)  # link up the source to the new node
         source.transmit(to_whom=node)  # in networks.py code, transmit info to the new node
         node.receive()  # new node receives everything
-        logger.info("New node! Index, ID and Participant: {}, {}, {}".format(
+        logger.info("New node! ID, Index, and Participant: {}, {}, {}".format(
             node.id, self.q.index_of(node), node.participant_id)
         )
         logger.info("Partners: {}".format(self.q.partner_indexes(node)))
