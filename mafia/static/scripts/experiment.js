@@ -1,4 +1,4 @@
-var expertise;
+/* global $, dallinger */
 var currentNodeId;
 var currentNodeName;
 var currentNodeType;
@@ -30,7 +30,7 @@ $(document).ready(function() {
 });
 
 // Create the agent.
-create_agent = function() {
+var create_agent = function() {
   var deferred = dallinger.createAgent();
   deferred.then(function (resp) {
     currentNodeId = resp.node.id;
@@ -43,7 +43,7 @@ create_agent = function() {
     // if you change this number you have to change it in "start_duration" in experiment.py
   }, function (err) {
     console.log(err);
-    errorResponse = JSON.parse(err.response);
+    var errorResponse = JSON.parse(err.response);
     if (errorResponse.hasOwnProperty("html")) {
       $("body").html(errorResponse.html);
     } else {
@@ -53,7 +53,7 @@ create_agent = function() {
   });
 };
 
-getParticipants = function() {
+var getParticipants = function() {
   dallinger.get("/live_participants/" + currentNodeId + '/' + 1).done(
     function (resp) {
       var participantList = resp.participants;
@@ -62,25 +62,27 @@ getParticipants = function() {
   );
 };
 
-getMafia = function() {
+var getMafia = function() {
   dallinger.get("/live_participants/" + currentNodeId + '/' + 0).done(
     function (resp) {
       var mafiaList = resp.participants;
       showParticipants(mafiaList, "#mafiosi", 'li');
     }
   );
-}
+};
 
-showParticipants = function(participantList, tag, subtag) {
-  $(tag).html('')
+var showParticipants = function(participantList, tag, subtag) {
+
+  var i;
+  $(tag).html('');
   if (tag == "#mafiosi") {
-    $(tag).append('<h4>List of Living Mafia</h4>')
+    $(tag).append('<h4>List of Living Mafia</h4>');
   }
   for (i = 0; i < participantList.length; i++) {
     // Add the next participant.
     var name = participantList[i];
     if (tag == "#mafiosi"){
-         $(tag).append('<' + subtag + '>' + name + '</' + subtag + '>');
+      $(tag).append('<' + subtag + '>' + name + '</' + subtag + '>');
     }
     if (tag == "#participants") {
       // don't allow participants to see / vote on themselves
@@ -91,9 +93,9 @@ showParticipants = function(participantList, tag, subtag) {
   }
 };
 
-showExperiment = function() {
+var showExperiment = function() {
   getParticipants();
-  $('#name').html('You are a ' + currentNodeType + "! Your player's name is: " + currentNodeName)
+  $('#name').html('You are a ' + currentNodeType + "! Your player's name is: " + currentNodeName);
   $("#player").show();
   $("#clock").show();
   $("#response-form").show();
@@ -113,7 +115,7 @@ showExperiment = function() {
   get_transmissions();
 };
 
-check_phase = function() {
+var check_phase = function() {
   var deferred = dallinger.get(
     "/phase/" + currentNodeId + '/' + switches + '/' + wasDaytime
   );
@@ -134,87 +136,90 @@ check_phase = function() {
       setTimeout(function () { leave_chatroom(); }, 8000);
     // otherwise...
     } else {
-          if (resp.daytime == 'True') {
-            $('#remaining').html('Time remaining this day: ' + resp.time)
+      if (resp.daytime == 'True') {
+        $('#remaining').html('Time remaining this day: ' + resp.time);
+      } else {
+        $('#remaining').html('Time remaining this night: ' + resp.time);
+      }
+
+      if (wasDaytime != resp.daytime) {
+        wasDaytime = resp.daytime;
+        switches++;
+        voted = false;
+        $("#reply").append("<hr>");
+        $("#votes").append("<hr>");
+        if (resp.daytime == 'False') { // Nighttime
+          $("#reply").append("<h5>Night " + ((switches / 2) + 1).toString() + "</h5>");
+          $("#votes").append("<h5>Night " + ((switches / 2) + 1).toString() + "</h5>");
+          document.body.style.backgroundColor = "royalblue";
+          if (resp.victim_name) {
+            $("#narrator").html(resp.victim_name + ", who is a " + resp.victim_type + ", has been eliminated!");
           } else {
-            $('#remaining').html('Time remaining this night: ' + resp.time)
+            $("#narrator").html("No one has been eliminated this round!");
+          }
+          if (currentNodeType == 'mafioso') {
+            $("#note").html('These messages are private!');
+            $("#vote-note").html('These votes are private!');
+          } else {
+            $("#note").show();
           }
 
-          if (wasDaytime != resp.daytime) {
-            wasDaytime = resp.daytime;
-            switches++;
-            voted = false;
-            $("#reply").append("<hr>")
-            $("#votes").append("<hr>")
-            if (resp.daytime == 'False') {
-              $("#reply").append("<h5>Night " + ((switches / 2) + 1).toString() + "</h5>")
-              $("#votes").append("<h5>Night " + ((switches / 2) + 1).toString() + "</h5>")
-              document.body.style.backgroundColor = "royalblue";
-              if (resp.victim_name) {
-                $("#narrator").html(resp.victim_name + ", who is a " + resp.victim_type + ", has been eliminated!");
-              } else {
-                $("#narrator").html("No one has been eliminated this round!");
-              }
-              if (currentNodeType == 'mafioso') {
-                $("#note").html('These messages are private!');
-                $("#vote-note").html('These votes are private!');
-              } else {
-                $("#note").show();
-              }
-
-            } else {
-              $("#reply").append("<h5>Day " + ((switches + 1) / 2).toString() + "</h5>")
-              $("#votes").append("<h5>Day " + ((switches + 1) / 2).toString() + "</h5>")
-              document.body.style.backgroundColor = "lightskyblue";
-              if (resp.victim_name) {
-                $("#narrator").html(resp.victim_name + " has been eliminated!");
-              } else {
-                $("#narrator").html("No one has been eliminated this round!");
-              }
-              if (currentNodeType == 'mafioso') {
-                $("#note").html('These messages are public!');
-                $("#vote-note").html('These votes are public!');
-              } else {
-                $("#note").hide();
-              }
-            }
-            $("#stimulus").show();
-            if (resp.victim_name == currentNodeName) {
-              // this is how long the "this person has been eliminated!" message gets displayed (ms)
-              setTimeout(function () { leave_chatroom(); }, 10000);
-              // if you change this number below you should change it here for consistency
-            }
-            getParticipants();
-            if (currentNodeType == 'mafioso' && resp.victim_type == 'mafioso') {
-              getMafia();
-            }
-            // this is how long the "this person has been eliminated!" message gets displayed (ms)
-            setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 10000);
-            // if you change this number you have to change it in "break_duration" in experiment.py
-          } else if (resp.time > 0 && resp.time <= 10 && voted == false && (resp.daytime == 'True' || (resp.daytime == 'False' && currentNodeType == 'mafioso'))) {
-            if (resp.time == 1) {
-              $("#narrator").html("You have " + resp.time + " second remaining to vote. Please vote now!");
-            } else {
-              $("#narrator").html("You have " + resp.time + " seconds remaining to vote. Please vote now!");
-            }
-            $("#stimulus").show();
-            setTimeout(function () { get_transmissions(currentNodeId); }, 100);
+        } else { // Daytime
+          $("#reply").append("<h5>Day " + ((switches + 1) / 2).toString() + "</h5>");
+          $("#votes").append("<h5>Day " + ((switches + 1) / 2).toString() + "</h5>");
+          document.body.style.backgroundColor = "lightskyblue";
+          if (resp.victim_name) {
+            $("#narrator").html(resp.victim_name + " has been eliminated!");
           } else {
-            setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 100);
+            $("#narrator").html("No one has been eliminated this round!");
+          }
+          if (currentNodeType == 'mafioso') {
+            $("#note").html('These messages are public!');
+            $("#vote-note").html('These votes are public!');
+          } else {
+            $("#note").hide();
           }
         }
-
+        // Any time...
+        $("#stimulus").show();
+        if (resp.victim_name == currentNodeName) {
+          // this is how long the "this person has been eliminated!" message gets displayed (ms)
+          setTimeout(function () { leave_chatroom(); }, 10000);
+          // if you change this number below you should change it here for consistency
+        }
+        getParticipants();
+        if (currentNodeType == 'mafioso' && resp.victim_type == 'mafioso') {
+          getMafia();
+        }
+        // this is how long the "this person has been eliminated!" message gets displayed (ms)
+        setTimeout(
+          function () { $("#stimulus").hide(); get_transmissions(currentNodeId); },
+          10000
+        );
+      // if you change this number you have to change it in "break_duration" in experiment.py
+      } else if (resp.time > 0 && resp.time <= 10 && voted == false && (resp.daytime == 'True' || (resp.daytime == 'False' && currentNodeType == 'mafioso'))) {
+        if (resp.time == 1) {
+          $("#narrator").html("You have " + resp.time + " second remaining to vote. Please vote now!");
+        } else {
+          $("#narrator").html("You have " + resp.time + " seconds remaining to vote. Please vote now!");
+        }
+        $("#stimulus").show();
+        setTimeout(function () { get_transmissions(currentNodeId); }, 100);
+      } else {
+        setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 100);
+      }
+    }
   }, function (err) {
     setTimeout(function () { get_transmissions(currentNodeId); }, 100);
   });
 };
 
-get_transmissions = function() {
+var get_transmissions = function() {
   dallinger.getTransmissions(
     currentNodeId,
     {status: "pending"}
   ).done(function(resp) {
-    transmissions = resp.transmissions;
+    var transmissions = resp.transmissions;
     for (var i = transmissions.length - 1; i >= 0; i--) {
       displayInfo(transmissions[i].info_id);
     }
@@ -222,7 +227,7 @@ get_transmissions = function() {
   });
 };
 
-displayInfo = function(infoId) {
+var displayInfo = function(infoId) {
   dallinger.getInfo(currentNodeId, infoId).done(
     function(resp) {
       var word = resp.info.contents;
@@ -235,11 +240,11 @@ displayInfo = function(infoId) {
   );
 };
 
-send_message = function() {
+var send_message = function() {
   if (currentNodeType === 'bystander' && wasDaytime === 'False') {
     return;
   }
-  response = $("#reproduction").val();
+  var response = $("#reproduction").val();
   // typing box
   // don't let people submit an empty response
   if (response.length === 0) {
@@ -263,12 +268,12 @@ send_message = function() {
   });
 };
 
-vote = function() {
+var vote = function() {
   if (currentNodeType == 'bystander' && wasDaytime == 'False' || voted) {
     return;
   }
   voted = true;
-  response = currentNodeName + ': ' + $("#participants").val();
+  var response = currentNodeName + ': ' + $("#participants").val();
   $(
     "#votes"
   ).append("<p style='color: #853d0a;'>" + response + "</p>");
@@ -282,7 +287,7 @@ vote = function() {
   });
 };
 
-leave_chatroom = function() {
+var leave_chatroom = function() {
   dallinger.allowExit();
   dallinger.goToPage("questionnaire");
 };
