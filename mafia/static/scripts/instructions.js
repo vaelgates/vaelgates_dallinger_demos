@@ -11,6 +11,13 @@
             dallinger.goToPage("instructions-1");
         });
 
+
+        // Proceed to second page of instructions
+        $("#go-to-instructions-2").click(function() {
+            dallinger.allowExit();
+            dallinger.goToPage("instructions-2");
+        });
+
         $('#test-sound').click(function () {
             var utterance = new SpeechSynthesisUtterance(TEST_PHRASE);
             var voice = speechSynthesis.getVoices().filter(
@@ -22,7 +29,7 @@
 
         $('#compare-phrases').click(function () {
             var heardAs = $('#heard-as').val();
-            score = similarity(TEST_PHRASE, heardAs);
+            var score = similarity(TEST_PHRASE, heardAs);
             if (score >= 0.75) {
                 result = '<div class="alert alert-success" role="alert">Everything seems to work. You can go ahead with the experiment.</div>';
                 $("#go-to-instructions-1")[0].disabled = false;
@@ -33,6 +40,23 @@
             $('#sound-test-result').html(result);
         });
 
+        // Proceed to waiting room-- only proceed if you get all questions correct
+        $("#go-to-waiting-room").click(function() {
+            compQ1 = $("#compQ1").val();
+            compQ2 = $("#compQ2").val();
+            compQ3 = $("#compQ3").val();
+            compQ4 = $("#compQ4").val();
+            if (compQ1 == 1) {
+                if (compQ2 == 1) {
+                    if (compQ3 == 1){
+                        if (compQ4 == 1){
+                            dallinger.allowExit();
+                            dallinger.goToPage("waiting");
+                        }
+                    }
+                }
+            }
+        });
     });
 
     function similarity(s1, s2) {
