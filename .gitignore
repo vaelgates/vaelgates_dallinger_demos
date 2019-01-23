@@ -8,5 +8,6 @@
 */data
 */snapshots
 */didnotwork
+.pytest_cache
 .DS_Store
 *.zip
