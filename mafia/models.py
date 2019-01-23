@@ -95,8 +95,7 @@ class MafiaNetwork(Network):
     def add_node(self, node):
         """Add a node, connecting it to other mafia if mafioso."""
         if node.type == "mafioso":
-            other_mafiosi = [n for n in Node.query.filter_by(type="mafioso")
-                             if n.id != node.id]
+            other_mafiosi = [n for n in self.live_mafiosi() if n.id != node.id]
             for n in other_mafiosi:
                 node.connect(direction="both", whom=n)
 
@@ -160,6 +159,10 @@ class MafiaNetwork(Network):
         return self.property3
 
     def fail_bystander_vectors(self):
+        """As implemented, this fails Vectors of both Bystanders (non-Mafia),
+        and dead Mafia.
+        TODO: Is this what we want?
+        """
         mafiosi = self.live_mafiosi()
         for v in self.vectors():
             if not isinstance(v.origin, Source) and not (
