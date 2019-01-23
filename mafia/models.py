@@ -159,10 +159,8 @@ class MafiaNetwork(Network):
         """Make last_victim_name queryable."""
         return self.property3
 
-
     def fail_bystander_vectors(self):
-        mafiosi = Node.query.filter_by(network_id=self.id,
-                                       property2='True', type='mafioso').all()
+        mafiosi = self.live_mafiosi()
         for v in self.vectors():
             if not isinstance(v.origin, Source) and not (
                     v.origin in mafiosi and v.destination in mafiosi):
@@ -191,32 +189,32 @@ class MafiaNetwork(Network):
             victim_name, _ = max(sorted_kv, key=lambda kv: kv[1])
             self.last_victim_name = victim_name
             victim_node = Node.query.filter_by(property1=victim_name).one()
-            victim_node.alive = 'False'
-            for v in victim_node.vectors():
-                v.fail()
-            for i in victim_node.infos():
-                i.fail()
-            for t in victim_node.transmissions(direction="all"):
-                t.fail()
-            for t in victim_node.transformations():
-                t.fail()
-            victim_node.deathtime = timenow()
+            self.kill_victim(victim_node)
         else:
             victim_name = None
         return victim_name
 
+    def kill_victim(self, victim_node):
+        """Don't fail the Node itself, but fail all it's related objects.
+        TODO: explain why not just victim_node.fail()
+        """
+        victim_node.alive = 'False'
+        for v in victim_node.vectors():
+            v.fail()
+        for i in victim_node.infos():
+            i.fail()
+        for t in victim_node.transmissions(direction="all"):
+            t.fail()
+        for t in victim_node.transformations():
+            t.fail()
+        victim_node.deathtime = timenow()
+
     def setup_daytime(self):
         self.daytime = 'True'
-        mafiosi = Node.query.filter_by(
-            network_id=self.id, property2='True', type='mafioso'
-        ).all()
+        mafiosi = self.live_mafiosi()
         victim_name = self.vote(mafiosi)
-        mafiosi = Node.query.filter_by(
-            network_id=self.id, property2='True', type='mafioso'
-        ).all()
-        nodes = Node.query.filter_by(
-            network_id=self.id, property2='True'
-        ).all()
+        mafiosi = self.live_mafiosi()
+        nodes = self.live_nodes()
         winner = None
         if len(mafiosi) >= len(nodes) - len(mafiosi):
             winner = 'mafia'
@@ -234,16 +232,10 @@ class MafiaNetwork(Network):
 
     def setup_nighttime(self):
         self.daytime = 'False'
-        nodes = Node.query.filter_by(
-            network_id=self.id, property2='True'
-        ).all()
+        nodes = self.live_nodes()
         victim_name = self.vote(nodes)
-        mafiosi = Node.query.filter_by(
-            network_id=self.id, property2='True', type='mafioso'
-        ).all()
-        nodes = Node.query.filter_by(
-            network_id=self.id, property2='True'
-        ).all()
+        mafiosi = self.live_mafiosi()
+        nodes = self.live_nodes()
         winner = None
         if len(mafiosi) >= len(nodes) - len(mafiosi):
             winner = 'mafia'
@@ -255,3 +247,16 @@ class MafiaNetwork(Network):
             return victim_name, winner
         self.fail_bystander_vectors()
         return victim_name, winner
+
+    def live_nodes(self):
+        """Living bystanders and mafios"""
+        nodes = Node.query.filter_by(
+            network_id=self.id, property2='True'
+        ).all()
+        return nodes
+
+    def live_mafiosi(self):
+        mafiosi = Node.query.filter_by(
+            network_id=self.id, property2='True', type='mafioso'
+        ).all()
+        return mafiosi
