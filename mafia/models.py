@@ -1,11 +1,13 @@
 """Define kinds of nodes: agents, sources, and environments."""
-
+import logging
 from sqlalchemy.ext.hybrid import hybrid_property
 from dallinger.models import Node, Network, Info, timenow
 from dallinger.nodes import Source
 from random import choice
 from dallinger import db
 
+
+logger = logging.getLogger(__name__)
 
 
 class Text(Info):
@@ -97,7 +99,10 @@ class MafiaNetwork(Network):
         if node.type == "mafioso":
             other_mafiosi = [n for n in self.live_mafiosi() if n.id != node.id]
             for n in other_mafiosi:
-                node.connect(direction="both", whom=n)
+                try:
+                    node.connect(direction="both", whom=n)
+                except ValueError:
+                    logger.error("Error connecting Mafioso!", exc_info=1)
 
     def add_source(self, source):
         """Connect the source to all existing other nodes."""
