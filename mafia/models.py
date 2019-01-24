@@ -159,12 +159,10 @@ class MafiaNetwork(Network):
         return self.property3
 
     def fail_bystander_vectors(self):
-        """As implemented, this fails Vectors of both Bystanders (non-Mafia),
-        and dead Mafia.
-        TODO: Is this what we want?
+        """Fails Vectors connecting Bystanders (non-Mafia).
         """
         mafiosi = self.live_mafiosi()
-        for v in self.vectors():
+        for v in self.vectors():  # returns non-failed Vectors only
             if not isinstance(v.origin, Source) and not (
                     v.origin in mafiosi and v.destination in mafiosi):
                 v.fail()
