@@ -191,7 +191,7 @@ def _descendent_classes(cls):
 
 
 BY_NAME = {}
-for cls in _descendent_classes(Topology):
+for cls in _descendent_classes(BaseTopology):
     BY_NAME[cls.__name__] = BY_NAME[cls.nickname] = cls
 
 
