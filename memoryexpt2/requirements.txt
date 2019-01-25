@@ -1,1 +1,1 @@
--e git://github.com/Dallinger/Dallinger.git@issues/1554-store-undefined-vals-rq#egg=dallinger[data]
+-e git://github.com/Dallinger/Dallinger.git@master#egg=dallinger
