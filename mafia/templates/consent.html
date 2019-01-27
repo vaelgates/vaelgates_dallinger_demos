@@ -23,7 +23,15 @@ contact UC Berkeley's Committee for Protection of Human Subjects at
 {% endblock %}
 
 {% block consent_button %}
-<button type="button" class="btn btn-primary btn-lg" id="consent"
-        onClick="dallinger.goToPage('instructions-0')">I agree
-</button>
+
+{% if experiment.skip_instructions %}
+  <button type="button" class="btn btn-primary btn-lg" id="consent"
+          onClick="dallinger.goToPage('waiting')">I agree
+  </button>
+{% else %}
+  <button type="button" class="btn btn-primary btn-lg" id="consent"
+          onClick="dallinger.goToPage('instructions-0')">I agree
+  </button>
+{% endif %}
+
 {% endblock consent_button %}
