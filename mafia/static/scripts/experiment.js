@@ -268,8 +268,23 @@ var send_message = function() {
   });
 };
 
+var allowedToVoteNow = function(nodeType, isDaytime, hasVotedAlready) {
+  if (nodeType === 'bystander' && ! isDaytime) {
+    console.log("Bystanders can't vote during the nighttime");
+    return false;
+  }
+
+  if (hasVotedAlready) {
+    console.log("You voted already!");
+    return false;
+  }
+  return true;
+
+};
+
 var vote = function() {
-  if (currentNodeType == 'bystander' && wasDaytime == 'False' || voted) {
+  var isDaytime = wasDaytime !== 'False';
+  if (! allowedToVoteNow(currentNodeType, isDaytime, voted)) {
     return;
   }
   voted = true;

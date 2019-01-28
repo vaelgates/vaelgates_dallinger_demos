@@ -13,6 +13,10 @@ from faker import Faker
 fake = Faker()
 
 
+DOLLARS_PER_HOUR = 5.0
+DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+
 class MafiaExperiment(dlgr.experiments.Experiment):
     """Define the structure of the experiment."""
 
@@ -21,7 +25,7 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         super(MafiaExperiment, self).__init__(session)
         import models
         self.models = models
-
+        self.skip_instructions = False  # If true, you'll go directly to /waiting
         self.experiment_repeats = 1
         # self.num_participants = 7
         self.num_participants = 4
@@ -60,17 +64,15 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         return mafia_network
 
     def record_waiting_room_exit(self, player_id):
+        # Nothing calling this currently.
         end_waiting_room = datetime.now().strftime(DATETIME_FORMAT)
         self.participant.property1 = end_waiting_room
 
     def bonus(self, participant):
         """Give the participant a bonus for waiting."""
-
-        DOLLARS_PER_HOUR = 5.0
-        DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
         try:
             end_waiting_room = datetime.strptime(participant.property1,
-                                                          DATETIME_FORMAT)
+                                                 DATETIME_FORMAT)
         except (TypeError, ValueError):
             # just in case something went wrong saving wait room end time
             last_participant_creation_time = Participant.query.order_by('creation_time')[self.num_participants - 1].creation_time
