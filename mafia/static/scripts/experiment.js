@@ -228,17 +228,18 @@ var get_transmissions = function() {
 };
 
 var displayInfo = function(infoId) {
-  dallinger.getInfo(currentNodeId, infoId).done(
-    function(resp) {
-      var word = resp.info.contents;
-      if (resp.info.type === 'text') {
-        $("#reply").append("<p>" + word + "</p>");
-      } else {
-        $("#votes").append("<p>" + word + "</p>");
-      }
-    }
-  );
+ dallinger.getInfo(currentNodeId, infoId).done(
+   function(resp) {
+     var word = resp.info.contents;
+     if (resp.info.type === 'text') {
+       $("#reply").append("<p>" + word + "</p>");
+     } else if (resp.info.type === 'vote') {
+       $("#votes").append("<p>" + word + "</p>");
+     }
+   }
+ );
 };
+
 
 var send_message = function() {
   if (currentNodeType === 'bystander' && wasDaytime === 'False') {
