@@ -27,12 +27,12 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         self.models = models
         self.skip_instructions = False  # If true, you'll go directly to /waiting
         self.experiment_repeats = 1
-        # self.num_participants = 7
-        self.num_participants = 10
-        self.num_mafia = 2
+        self.num_participants = 4
+        # self.num_participants = 10
+        self.num_mafia = 1
         # self.num_mafia = 2
         # Note: can't do * 2.5 here, won't run even if the end result is an integer
-        self.initial_recruitment_size = self.num_participants * 3
+        self.initial_recruitment_size = self.num_participants # * 3
         self.quorum = self.num_participants
         if session:
             self.setup()
@@ -179,7 +179,7 @@ def phase(node_id, switches, was_daytime):
             winner = net.winner
             source = net.nodes(type=Source)[0]
             last_source_info = source.infos()[-1]
-            if last_source_info.contents == phase_map[net.daytime]:
+            if last_source_info.contents.split(':')[0] != phase_map[net.daytime]:
                 if this_node.property2 == 'True':
                     source.transmit(to_whom=this_node)
         # If it's night but should be day, then call setup_daytime()
@@ -191,7 +191,7 @@ def phase(node_id, switches, was_daytime):
             victim_name, winner = net.setup_daytime()
             source = net.nodes(type=Source)[0]
             last_source_info = source.infos()[-1]
-            if last_source_info.contents != phase_map[net.daytime]:
+            if last_source_info.contents.split(':')[0] != phase_map[net.daytime]:
                 if this_node.property2 == 'True':
                     source.transmit(to_whom=this_node)
         # If it's day but should be night, then call setup_nighttime()
@@ -203,7 +203,7 @@ def phase(node_id, switches, was_daytime):
             victim_name, winner = net.setup_nighttime()
             source = net.nodes(type=Source)[0]
             last_source_info = source.infos()[-1]
-            if last_source_info.contents != phase_map[net.daytime]:
+            if last_source_info.contents.split(':')[0] != phase_map[net.daytime]:
                 if this_node.property2 == 'True':
                     source.transmit(to_whom=this_node)
 
@@ -214,6 +214,7 @@ def phase(node_id, switches, was_daytime):
             victim_type = Node.query.filter_by(property1=victim_name).one().type
         else:
             victim_type = None
+            net.last_victim_name = None
 
         return Response(
             response=json.dumps({
@@ -276,6 +277,12 @@ class Source(Source):
 
         net = Network.query.filter_by(id=self.network_id).one()
         if net.property1 == 'True':
-            return "Phase Change to Daytime"
+            if net.last_victim_name:
+                return "Phase Change to Daytime: Victim - " + net.last_victim_name
+            else:
+                return "Phase Change to Daytime"
         else:
-            return "Phase Change to Nighttime"
+            if net.last_victim_name:
+                return "Phase Change to Nighttime: Victim - " + net.last_victim_name
+            else:
+                return "Phase Change to Nighttime"
