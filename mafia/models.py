@@ -198,6 +198,7 @@ class MafiaNetwork(Network):
             self.kill_victim(victim_node)
         else:
             victim_name = None
+            self.last_victim_name = None
         return victim_name
 
     def kill_victim(self, victim_node):

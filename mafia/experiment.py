@@ -5,7 +5,7 @@ import random
 
 import dallinger as dlgr
 from dallinger import db
-from dallinger.models import Node, Participant, Network, timenow
+from dallinger.models import Node, Info, Participant, Network, timenow
 from dallinger.nodes import Source
 from datetime import datetime
 from flask import Blueprint, Response
@@ -25,7 +25,8 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         super(MafiaExperiment, self).__init__(session)
         import models
         self.models = models
-        self.skip_instructions = False  # If true, you'll go directly to /waiting
+        self.skip_instructions = True  # If true, you'll go directly to /waiting
+        # self.skip_instructions = False  # If true, you'll go directly to /waiting
         self.experiment_repeats = 1
         self.num_participants = 4
         # self.num_participants = 10
@@ -143,8 +144,10 @@ def phase(node_id, switches, was_daytime):
         start_duration = 2 # this line ALSO gets set in experiment.js (hardcoded),
         # this is how long the "this person has been eliminatedTEMPORARY SWITCH BACK!" message gets displayed
         # setTimeout(function () { $("#stimulus").hide(); showExperiment(); }, 2000);
-        day_round_duration = 150
-        night_round_duration = 60
+        day_round_duration = 30
+        # day_round_duration = 150
+        night_round_duration = 30
+        # night_round_duration = 60
         break_duration = 10 # this line ALSO gets set in experiment.js (hardcoded),
         # this is how long the "The game will begin shortly..." message gets displayed
         # setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 10000);
@@ -167,9 +170,11 @@ def phase(node_id, switches, was_daytime):
                 (((switches+1) / 2) -1) * daybreak_duration
             ) % day_round_duration
         time = int(time)
-        victim_name = net.last_victim_name
+        # victim_name = net.last_victim_name
+        victim_name = None
         victim_type = None
-        winner = net.winner
+        winner = None
+        # winner = net.winner
 
         daytime = (net.daytime == 'True')
         phase_map = {'True': 'Phase Change to Daytime', 'False': 'Phase Change to Nighttime'}
@@ -178,7 +183,10 @@ def phase(node_id, switches, was_daytime):
             victim_name = net.last_victim_name
             winner = net.winner
             source = net.nodes(type=Source)[0]
-            last_source_info = source.infos()[-1]
+            last_source_info = Info.query.filter_by(
+                origin_id=source.id,
+                type='info'
+            ).order_by('creation_time')[-1]
             if last_source_info.contents.split(':')[0] != phase_map[net.daytime]:
                 if this_node.property2 == 'True':
                     source.transmit(to_whom=this_node)
@@ -190,7 +198,10 @@ def phase(node_id, switches, was_daytime):
                 ) >= night_round_duration):
             victim_name, winner = net.setup_daytime()
             source = net.nodes(type=Source)[0]
-            last_source_info = source.infos()[-1]
+            last_source_info = Info.query.filter_by(
+                origin_id=source.id,
+                type='info'
+            ).order_by('creation_time')[-1]
             if last_source_info.contents.split(':')[0] != phase_map[net.daytime]:
                 if this_node.property2 == 'True':
                     source.transmit(to_whom=this_node)
@@ -202,7 +213,10 @@ def phase(node_id, switches, was_daytime):
                 ) >= day_round_duration):
             victim_name, winner = net.setup_nighttime()
             source = net.nodes(type=Source)[0]
-            last_source_info = source.infos()[-1]
+            last_source_info = Info.query.filter_by(
+                origin_id=source.id,
+                type='info'
+            ).order_by('creation_time')[-1]
             if last_source_info.contents.split(':')[0] != phase_map[net.daytime]:
                 if this_node.property2 == 'True':
                     source.transmit(to_whom=this_node)
