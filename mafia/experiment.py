@@ -25,12 +25,12 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         super(MafiaExperiment, self).__init__(session)
         import models
         self.models = models
-        self.skip_instructions = False  # If true, you'll go directly to /waiting
+        self.skip_instructions = True  # If true, you'll go directly to /waiting
         self.experiment_repeats = 1
-        self.num_participants = 10
+        self.num_participants = 8
         self.num_mafia = 2
         # Note: can't do * 2.5 here, won't run even if the end result is an integer
-        self.initial_recruitment_size = self.num_participants * 3
+        self.initial_recruitment_size = self.num_participants # * 3
         self.quorum = self.num_participants
         if session:
             self.setup()
@@ -148,10 +148,7 @@ def phase(node_id, switches, was_daytime):
         # setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 10000);
         daybreak_duration = day_round_duration + break_duration
         nightbreak_duration = night_round_duration + break_duration
-        if elapsed_time.total_seconds() > start_duration:
-            total_time = elapsed_time.total_seconds() - start_duration
-        else:
-            total_time = 0
+        total_time = max(0, elapsed_time.total_seconds() - start_duration)
         if switches % 2 == 0:
             time = night_round_duration - (
                 total_time -

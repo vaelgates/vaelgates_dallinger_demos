@@ -3,9 +3,9 @@ import logging
 from sqlalchemy.ext.hybrid import hybrid_property
 from dallinger.models import Node, Network, Info, timenow
 from dallinger.nodes import Source
-from random import choice
+from random import choice, seed, random
 from dallinger import db
-
+seed(42)
 
 logger = logging.getLogger(__name__)
 
@@ -173,6 +173,7 @@ class MafiaNetwork(Network):
                 v.fail()
 
     def vote(self, nodes):
+        phase_map = {'True': 'Phase Change to Daytime', 'False': 'Phase Change to Nighttime'}
         votes = {}
         for node in nodes:
             vote = None
@@ -181,18 +182,26 @@ class MafiaNetwork(Network):
                 type='vote'
             ).order_by('creation_time')
             if node_votes.first() is not None:
-                node_vote = node_votes[-1].contents.split(': ')[1]
-                if Node.query.filter_by(
-                        property1=node_vote).one().property2 == 'True':
-                    vote = node_vote
+                infos = Info.query.filter_by(
+                                    origin_id=self.nodes(type=Source)[0].id,
+                                    type='info'
+                                    ).order_by('creation_time')
+                phase_start_time = infos[-1].creation_time
+                if infos[-1].contents.split(': ')[0] == phase_map[self.daytime]:
+                    phase_start_time = infos[-2].creation_time
+                if (node_votes[-1].creation_time - phase_start_time).total_seconds() > 0:
+                    node_vote = node_votes[-1].contents.split(': ')[1]
+                    if Node.query.filter_by(
+                            property1=node_vote).one().property2 == 'True':
+                        vote = node_vote
             if vote:
                 if vote in votes:
                     votes[vote] += 1
                 else:
                     votes[vote] = 1
-        sorted_kv = sorted(votes.items(), key=lambda kv: kv[0])
-        if sorted_kv:
-            victim_name, _ = max(sorted_kv, key=lambda kv: kv[1])
+        # sorted_kv = sorted(votes.items(), key=lambda kv: kv[0])
+        if votes:
+            victim_name, _ = max(votes.items(), key=lambda kv: kv[1] + random())
             self.last_victim_name = victim_name
             victim_node = Node.query.filter_by(property1=victim_name).one()
             self.kill_victim(victim_node)
