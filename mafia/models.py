@@ -267,12 +267,13 @@ class MafiaNetwork(Network):
     def live_nodes(self):
         """Living bystanders and mafios"""
         nodes = Node.query.filter_by(
-            network_id=self.id, property2='True'
+            network_id=self.id, property2='True', failed='False'
         ).all()
         return nodes
 
     def live_mafiosi(self):
         mafiosi = Node.query.filter_by(
-            network_id=self.id, property2='True', type='mafioso'
+            network_id=self.id, property2='True', failed='False', type='mafioso'
         ).all()
         return mafiosi
+
