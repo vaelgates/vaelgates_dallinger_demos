@@ -10,28 +10,19 @@
 
 {% block body %}
 <div class="main_div">
-    <div id="stimulus" style="display:none;">
-        <div><h1 id="narrator" style="color:#853d0a;"></h1></div>
-    </div>
-    <div id="player" style="display:none;">
-        <div><h2 id="name"></h2></div>
-    </div>
-    <div id="clock" style="display:none;">
-        <div><h3 id="remaining">Time remaining this round: </h3></div>
-    </div>
     <div id="response-form" style="display:none;">
         <div id="chat">
-          <div style="width:700px; float:left;"><blockquote id="reply"><h4>Messages</h4><h5>Night 1</h5></blockquote></div>
-          <div style="width:300px; float:right;"><blockquote id="votes"><h4>Votes</h4><h5>Night 1</h5></blockquote></div>
+          <div style="width:70%; float:left;"><blockquote id="reply"><h4>Messages</h4><h5>Night 1</h5></blockquote></div>
+          <div style="width:30%; float:right;"><blockquote id="votes"><h4>Votes</h4><h5>Night 1</h5></blockquote></div>
         </div>
-        <div id="note" style="display:none; width:700px; float:left;">These messages are private!</div>
+        <div id="note" style="display:none; width:70%; float:left;">These messages are private!</div>
         <input type="text" id="reproduction" class="form-control" />
         <br>
         <button id="send-message" type="button" class="btn btn-primary">Send.</button>
         <!-- <button id="leave-chat" type="button" class="btn" onClick="leave_chatroom();">Quit Game</button> -->
     </div>
     <br>
-    <div id="vote-form" style="display:none; width:200px; float:left;">
+    <div id="vote-form" style="display:none; width:20%; float:left;">
       <h4>Who do you wish to eliminate?</h4>
       <div id="vote-note" style="display:none">These votes are private!</div>
           <select id="participants"></select>
@@ -39,8 +30,19 @@
           <br>
           <button id="vote" type="button" class="btn btn-primary">Vote (not changeable!)</button>
     </div>
-    <div id="mafia" style="display:none; width:800px; float:right;">
+    <div id="mafia" style="display:none; width:80%; float:right;">
         <ul id="mafiosi"><h4>List of Living Mafia</h4></ul>
+    </div>
+    <div id="game-info" style="width:100%; float:left;">
+      <div id="stimulus" style="display:none;">
+          <div><h1 id="narrator" style="color:#853d0a;"></h1></div>
+      </div>
+      <div id="player" style="display:none;">
+          <div><h2 id="name"></h2></div>
+      </div>
+      <div id="clock" style="display:none;">
+          <div><h3 id="remaining">Time remaining this round: </h3></div>
+      </div>
     </div>
 </div>
 {% endblock %}

@@ -25,12 +25,12 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         super(MafiaExperiment, self).__init__(session)
         import models
         self.models = models
-        self.skip_instructions = False  # If true, you'll go directly to /waiting
+        self.skip_instructions = True  # If true, you'll go directly to /waiting
         self.experiment_repeats = 1
-        self.num_participants = 10
-        self.num_mafia = 2
+        self.num_participants = 4
+        self.num_mafia = 1
         # Note: can't do * 2.5 here, won't run even if the end result is an integer
-        self.initial_recruitment_size = self.num_participants * 3
+        self.initial_recruitment_size = self.num_participants
         self.quorum = self.num_participants
         if session:
             self.setup()
