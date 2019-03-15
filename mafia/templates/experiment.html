@@ -10,6 +10,9 @@
 
 {% block body %}
 <div class="main_div">
+	<div id="player" style="display:none;">
+          <div><h2 id="name"></h2></div>
+    </div>
     <div id="response-form" style="display:none;">
         <div id="chat">
           <div style="width:70%; float:left;"><blockquote id="reply"><h4>Messages</h4><h5>Night 1</h5></blockquote></div>
@@ -37,12 +40,14 @@
       <div id="stimulus" style="display:none;">
           <div><h1 id="narrator" style="color:#853d0a;"></h1></div>
       </div>
-      <div id="player" style="display:none;">
-          <div><h2 id="name"></h2></div>
-      </div>
       <div id="clock" style="display:none;">
           <div><h3 id="remaining">Time remaining this round: </h3></div>
       </div>
+      <br>
+      <br>
+      <br>
+      <br>
+      <br>
     </div>
 </div>
 {% endblock %}
