@@ -239,6 +239,7 @@ class MafiaNetwork(Network):
             victim_node = Node.query.filter_by(property1=victim_name).one()
             self.kill_victim(victim_node)
         else:
+            self.num_rand = 0
             victim_name = None
             self.last_victim_name = None
         return victim_name
