@@ -25,12 +25,12 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         super(MafiaExperiment, self).__init__(session)
         import models
         self.models = models
-        self.skip_instructions = False  # If True, you'll go directly to /waiting
+        self.skip_instructions = True  # If True, you'll go directly to /waiting
         self.experiment_repeats = 1
-        self.num_participants = 10
+        self.num_participants = 6
         self.num_mafia = 2
         # Note: can't do * 2.5 here, won't run even if the end result is an integer
-        self.initial_recruitment_size = self.num_participants * 3
+        self.initial_recruitment_size = self.num_participants
         self.quorum = self.num_participants
         if session:
             self.setup()
@@ -59,6 +59,7 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         mafia_network.daytime = 'False'
         mafia_network.winner = None
         mafia_network.last_victim_name = None
+        mafia_network.num_rand = 0
         return mafia_network
 
     def record_waiting_room_exit(self, player_id):
