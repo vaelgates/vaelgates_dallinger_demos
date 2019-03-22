@@ -14,7 +14,7 @@ fake = Faker()
 
 
 DOLLARS_PER_HOUR = 5.0
-DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
 
 
 class MafiaExperiment(dlgr.experiments.Experiment):
@@ -25,12 +25,12 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         super(MafiaExperiment, self).__init__(session)
         import models
         self.models = models
-        self.skip_instructions = False  # If true, you'll go directly to /waiting
+        self.skip_instructions = False  # If True, you'll go directly to /waiting
         self.experiment_repeats = 1
         self.num_participants = 10
         self.num_mafia = 2
         # Note: can't do * 2.5 here, won't run even if the end result is an integer
-        self.initial_recruitment_size = self.num_participants*3
+        self.initial_recruitment_size = self.num_participants * 3
         self.quorum = self.num_participants
         if session:
             self.setup()
@@ -174,6 +174,7 @@ def phase(node_id, switches, was_daytime):
         if was_daytime != net.daytime:
             victim_name = net.last_victim_name
             winner = net.winner
+            net.node_random()
             source = net.nodes(type=Source)[0]
             last_source_info = Info.query.filter_by(
                 origin_id=source.id,

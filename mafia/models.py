@@ -3,8 +3,11 @@ import logging
 from sqlalchemy.ext.hybrid import hybrid_property
 from dallinger.models import Node, Network, Info, timenow
 from dallinger.nodes import Source
-from random import choice, seed, random
+from random import seed, random
 from dallinger import db
+from datetime import datetime
+
+DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
 seed(42)
 
 logger = logging.getLogger(__name__)
@@ -163,6 +166,24 @@ class MafiaNetwork(Network):
         """Make last_victim_name queryable."""
         return self.property3
 
+    @hybrid_property
+    def num_rand(self):
+        """Convert property4 to num_rand."""
+        try:
+            return self.property4
+        except TypeError:
+            return None
+
+    @num_rand.setter
+    def num_rand(self, num_random):
+        """Make num_rand settable."""
+        self.property4 = num_random
+
+    @num_rand.expression
+    def num_rand(self):
+        """Make num_rand queryable."""
+        return self.property4
+
     def fail_bystander_vectors(self):
         """Fails Vectors connecting Bystanders (non-Mafia).
         """
@@ -172,37 +193,49 @@ class MafiaNetwork(Network):
                     v.origin in mafiosi and v.destination in mafiosi):
                 v.fail()
 
+    def node_random(self):
+        for _ in range(int(self.num_rand)):
+            random()
+
     def vote(self, nodes):
         phase_map = {'True': 'Phase Change to Daytime', 'False': 'Phase Change to Nighttime'}
         votes = {}
+        infos = Info.query.filter_by(
+                            origin_id=self.nodes(type=Source)[0].id,
+                            type='info'
+                            ).order_by('creation_time')
+        phase_start_time = infos[-1].creation_time
+        if infos[-1].contents.split(': ')[0] == phase_map[self.daytime]:
+            phase_start_time = infos[-2].creation_time
         for node in nodes:
             vote = None
             node_votes = Info.query.filter_by(
                 origin_id=node.id,
                 type='vote'
             ).order_by('creation_time')
-            if node_votes.first() is not None:
-                infos = Info.query.filter_by(
-                                    origin_id=self.nodes(type=Source)[0].id,
-                                    type='info'
-                                    ).order_by('creation_time')
-                phase_start_time = infos[-1].creation_time
-                if infos[-1].contents.split(': ')[0] == phase_map[self.daytime]:
-                    phase_start_time = infos[-2].creation_time
-                if (node_votes[-1].creation_time - phase_start_time).total_seconds() > 0:
-                    node_vote = node_votes[-1].contents.split(': ')[1]
-                    if Node.query.filter_by(
-                            property1=node_vote).one().property2 == 'True':
-                        vote = node_vote
+            if node_votes.first() and (node_votes[-1].creation_time - phase_start_time).total_seconds() > 0:
+                node_vote = node_votes[-1].contents.split(': ')[1]
+                # if Node.query.filter_by(
+                #         property1=node_vote).one().property2 == 'True':
+                vote = node_vote
             if vote:
                 if vote in votes:
                     votes[vote] += 1
                 else:
                     votes[vote] = 1
-        # sorted_kv = sorted(votes.items(), key=lambda kv: kv[0])
+        sorted_kv = sorted(votes.items(), key=lambda kv: kv[0])
+        victim_nodes = Node.query.filter_by(
+            network_id=self.id,
+            property2='False'
+        ).order_by('property3')
+        if victim_nodes.first() and (datetime.strptime(victim_nodes[-1].property3, DATETIME_FORMAT) - phase_start_time).total_seconds() > 0:
+            return victim_nodes[-1].property1
         if votes:
-            victim_name, _ = max(votes.items(), key=lambda kv: kv[1] + random())
+            victim_name, num_votes = max(sorted_kv, key=lambda kv: kv[1] + random())
+            # victim_name, num_votes = max(votes.items(), key=lambda kv: kv[1] + random())
             self.last_victim_name = victim_name
+            num_random = len([v for _, v in votes.items() if v == num_votes])
+            self.num_rand = num_random
             victim_node = Node.query.filter_by(property1=victim_name).one()
             self.kill_victim(victim_node)
         else:
@@ -276,4 +309,3 @@ class MafiaNetwork(Network):
             network_id=self.id, property2='True', failed='False', type='mafioso'
         ).all()
         return mafiosi
-
