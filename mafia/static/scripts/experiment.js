@@ -5,6 +5,7 @@ var currentNodeType;
 var wasDaytime = 'False';
 var switches = 0;
 var voted = false;
+var is_break = false;
 
 $(document).ready(function() {
   // Do not print the consent form.
@@ -146,6 +147,7 @@ var check_phase = function() {
         wasDaytime = resp.daytime;
         switches++;
         voted = false;
+        is_break = true;
         $("#reply").append("<hr>");
         $("#votes").append("<hr>");
         if (resp.daytime == 'False') { // Nighttime
@@ -193,7 +195,7 @@ var check_phase = function() {
         }
         // this is how long the "this person has been eliminated!" message gets displayed (ms)
         setTimeout(
-          function () { $("#stimulus").hide(); get_transmissions(currentNodeId); },
+          function () { $("#stimulus").hide(); is_break = false; get_transmissions(currentNodeId); },
           10000
         );
       // if you change this number you have to change it in "break_duration" in experiment.py
@@ -242,7 +244,7 @@ var displayInfo = function(infoId) {
 
 
 var send_message = function() {
-  if (currentNodeType === 'bystander' && wasDaytime === 'False') {
+  if ((currentNodeType === 'bystander' && wasDaytime === 'False') || is_break) {
     return;
   }
   var response = $("#reproduction").val();
@@ -285,7 +287,7 @@ var allowedToVoteNow = function(nodeType, isDaytime, hasVotedAlready) {
 
 var vote = function() {
   var isDaytime = wasDaytime !== 'False';
-  if (! allowedToVoteNow(currentNodeType, isDaytime, voted)) {
+  if (! allowedToVoteNow(currentNodeType, isDaytime, voted) || is_break) {
     return;
   }
   voted = true;

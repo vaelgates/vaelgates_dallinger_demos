@@ -25,7 +25,7 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         super(MafiaExperiment, self).__init__(session)
         import models
         self.models = models
-        self.skip_instructions = False  # If True, you'll go directly to /waiting
+        self.skip_instructions = False # If True, you'll go directly to /waiting
         self.experiment_repeats = 1
         self.num_participants = 10
         self.num_mafia = 2
