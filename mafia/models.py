@@ -300,9 +300,10 @@ class MafiaNetwork(Network):
         db.logger.exception(self.num_victims)
         if len(victim_nodes) > self.num_victims:
             self.node_random()
+            self.last_victim_name = victim_nodes[-1].fake_name
             db.logger.exception('Daytime - Victim')
-            db.logger.exception(victim_nodes[-1].fake_name)
-            return victim_nodes[-1].fake_name, self.get_winner()
+            db.logger.exception(self.last_victim_name)
+            return self.last_victim_name, self.get_winner()
         mafiosi = self.live_mafiosi()
         victim_name = self.vote(mafiosi)
         db.logger.exception('Daytime Victim')
@@ -319,9 +320,10 @@ class MafiaNetwork(Network):
         db.logger.exception(self.num_victims)
         if len(victim_nodes) > self.num_victims:
             self.node_random()
+            self.last_victim_name = victim_nodes[-1].fake_name
             db.logger.exception('Nighttime - Victim')
-            db.logger.exception(victim_nodes[-1].fake_name)
-            return victim_nodes[-1].fake_name, self.get_winner()
+            db.logger.exception(self.last_victim_name)
+            return self.last_victim_name, self.get_winner()
         nodes = self.live_nodes()
         victim_name = self.vote(nodes)
         db.logger.exception('Nighttime Victim')

@@ -173,7 +173,11 @@ def phase(node_id, switches, was_daytime):
 
         if was_daytime != net.daytime:
             victim_name = net.last_victim_name
+            db.logger.exception('Victim Name (as copied from network)')
+            db.logger.exception(victim_name)
             winner = net.winner
+            db.logger.exception('Winner')
+            db.logger.exception(winner)
             net.node_random()
             source = net.nodes(type=Source)[0]
             last_source_info = Info.query.filter_by(
@@ -190,6 +194,8 @@ def phase(node_id, switches, was_daytime):
                 - (switches / 2) * nightbreak_duration
                 ) >= night_round_duration):
             victim_name, winner = net.setup_daytime()
+            db.logger.exception('Winner')
+            db.logger.exception(winner)
             source = net.nodes(type=Source)[0]
             last_source_info = Info.query.filter_by(
                 origin_id=source.id,
@@ -205,6 +211,8 @@ def phase(node_id, switches, was_daytime):
                 - (((switches + 1) / 2) - 1) * daybreak_duration
                 ) >= day_round_duration):
             victim_name, winner = net.setup_nighttime()
+            db.logger.exception('Winner')
+            db.logger.exception(winner)
             source = net.nodes(type=Source)[0]
             last_source_info = Info.query.filter_by(
                 origin_id=source.id,
@@ -219,13 +227,11 @@ def phase(node_id, switches, was_daytime):
 
         if victim_name:
             victim_type = Node.query.filter_by(property1=victim_name).one().type
+            db.logger.exception('Victim Type')
+            db.logger.exception(victim_type)
         else:
             victim_type = None
             net.last_victim_name = None
-        db.logger.exception('Victim Type')
-        db.logger.exception(victim_type)
-        db.logger.exception('Winner')
-        db.logger.exception(winner)
 
         return Response(
             response=json.dumps({
