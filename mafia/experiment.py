@@ -59,6 +59,7 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         mafia_network.daytime = 'False'
         mafia_network.winner = None
         mafia_network.last_victim_name = None
+        mafia_network.num_victims = 0
         mafia_network.num_rand = 0
         return mafia_network
 
