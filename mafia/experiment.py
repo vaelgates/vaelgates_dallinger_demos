@@ -25,12 +25,12 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         super(MafiaExperiment, self).__init__(session)
         import models
         self.models = models
-        self.skip_instructions = True # If True, you'll go directly to /waiting
+        self.skip_instructions = False # If True, you'll go directly to /waiting
         self.experiment_repeats = 1
-        self.num_participants = 6
+        self.num_participants = 10
         self.num_mafia = 2
         # Note: can't do * 2.5 here, won't run even if the end result is an integer
-        self.initial_recruitment_size = self.num_participants
+        self.initial_recruitment_size = self.num_participants*3
         self.quorum = self.num_participants
         if session:
             self.setup()
@@ -143,8 +143,8 @@ def phase(node_id, switches, was_daytime):
         start_duration = 2 # this line ALSO gets set in experiment.js (hardcoded),
         # this is how long the "this person has been eliminatedTEMPORARY SWITCH BACK!" message gets displayed
         # setTimeout(function () { $("#stimulus").hide(); showExperiment(); }, 2000);
-        day_round_duration = 50
-        night_round_duration = 20
+        day_round_duration = 150
+        night_round_duration = 60
         break_duration = 10 # this line ALSO gets set in experiment.js (hardcoded),
         # this is how long the "The game will begin shortly..." message gets displayed
         # setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 10000);
