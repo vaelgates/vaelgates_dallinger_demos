@@ -80,7 +80,10 @@ class MafiaExperiment(dlgr.experiments.Experiment):
             return True
         # Check for existing Participant Nodes, which indicates experiment
         # has started:
-        # TODO
+        for network in self.networks():
+            if network.nodes(type=Participant):
+                return True
+        return False
 
     def record_waiting_room_exit(self, player_id):
         # Nothing calling this currently.
