@@ -25,12 +25,12 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         super(MafiaExperiment, self).__init__(session)
         import models
         self.models = models
-        self.skip_instructions = False # If True, you'll go directly to /waiting
+        self.skip_instructions = False  # If True, you'll go directly to /waiting
         self.experiment_repeats = 1
         self.num_participants = 10
         self.num_mafia = 2
-        # Note: can't do * 2.5 here, won't run even if the end result is an integer
-        self.initial_recruitment_size = self.num_participants*3
+        # Note: can't do * 2.5 here, won't run even if the end result isn't an integer
+        self.initial_recruitment_size = self.num_participants * 3
         self.quorum = self.num_participants
         if session:
             self.setup()
@@ -62,6 +62,25 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         mafia_network.num_victims = 0
         mafia_network.num_rand = 0
         return mafia_network
+
+    def is_overrecruited(self, waiting_count):
+        """Returns True if the number of people waiting is in excess of the
+        total number expected, indicating that this and subsequent users should
+        skip the experiment. A quorum value of 0 means we don't limit
+        recruitment, and always return False.
+
+        Additionally, we check if there are any Participant Nodes already
+        present. If there are, this means the experiment has already started, a
+        and we're "overrecruited" by definition. We do this to prevent anyone
+        from joining the experiment late.
+        """
+        if not self.quorum:
+            return False
+        if waiting_count > self.quorum:
+            return True
+        # Check for existing Participant Nodes, which indicates experiment
+        # has started:
+        # TODO
 
     def record_waiting_room_exit(self, player_id):
         # Nothing calling this currently.
