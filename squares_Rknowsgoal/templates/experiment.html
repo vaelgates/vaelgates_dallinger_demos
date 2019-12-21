@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+
+{% block body %}
+<div class="main_div">
+      
+<div class="container">
+  <p><b>Goal </b><i> (both you and your partner can see this)</i></p> <!--(only you can see this)</i></p>-->
+
+  <table class = "goaltable">
+      <caption align="bottom"><div id="counter"></div></caption> <!-- counter, increments by trial -->
+      <tr>
+          <td class="goal_cell" id="goal_0"></td>
+          <td class="goal_cell" id="goal_1"></td>
+          <td class="goal_cell" id="goal_2"></td>
+      </tr>
+
+      <tr>
+          <td class="goal_cell" id="goal_3"></td>
+          <td class="goal_cell" id="goal_4"></td>
+          <td class="goal_cell" id="goal_5"></td>
+      </tr>
+
+      <tr>
+          <td class="goal_cell" id="goal_6"></td>
+          <td class="goal_cell" id="goal_7"></td>
+          <td class="goal_cell" id="goal_8"></td>
+      </tr>
+  </table>
+
+    <br>
+    <button id="replay" type="button" class="btn btn-primary" style="display: block; margin: 0 auto;">Next game</button>
+    <button id="alldone" type="button" class="btn btn-primary" style="display: block; margin: 0 auto;">Finish</button>
+
+    <table class = "maintable">
+        <caption align="bottom"><br><b>Make the goal pattern.</b>
+        <br> Choose a square by clicking on it, 
+    then wait for your partner to choose a square.</caption>
+    <tr>
+      <td class="cell" id="0"></td>
+      <td class="cell" id="1"></td>
+      <td class="cell" id="2"></td>
+    </tr>
+
+    <tr>
+      <td class="cell" id="3"></td>
+      <td class="cell" id="4"></td>
+      <td class="cell" id="5"></td>
+    </tr>
+
+    <tr>
+      <td class="cell" id="6"></td>
+      <td class="cell" id="7"></td>
+      <td class="cell" id="8"></td>
+    </tr>
+    </table>
+
+  </div>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/scripts/index.js" type="text/javascript"> </script>
+<script>
+    create_agent();
+</script>
+{% endblock %}
