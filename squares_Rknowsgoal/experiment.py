@@ -16,7 +16,7 @@ class Squares(Experiment):
         """
         super(Squares, self).__init__(session)
         self.experiment_repeats = 1
-        self.initial_recruitment_size = 2 #60
+        self.initial_recruitment_size = 60
         if session:
             self.setup()
 
