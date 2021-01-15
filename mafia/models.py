@@ -84,6 +84,12 @@ class Bystander(Node):
         """Make death time queryable."""
         return self.property3
 
+    def fail(self):
+        super().fail()
+        if self.network.infos():
+            self.network.max_size -= 1
+            self.network.calculate_full()
+
 
 class Mafioso(Bystander):
     """Member of the mafia."""

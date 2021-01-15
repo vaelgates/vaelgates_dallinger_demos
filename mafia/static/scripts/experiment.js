@@ -72,6 +72,15 @@ var getMafia = function() {
   );
 };
 
+var getModel = function() {
+  dallinger.get("/suspected_mafia/" + currentNodeId + '/' + 1).done(
+    function (resp) {
+      var participantList = resp.participants;
+      showParticipants(participantList, "#bystander", 'li');
+    }
+  );
+};
+
 var showParticipants = function(participantList, tag, subtag) {
 
   var i;
@@ -79,13 +88,17 @@ var showParticipants = function(participantList, tag, subtag) {
   if (tag == "#mafiosi") {
     $(tag).append('<h4>List of Living Mafia</h4>');
   }
+  else if (tag == "#bystander") {
+    $(tag).append('<h4>List of Suspected Mafia</h4>');
+  }
   for (i = 0; i < participantList.length; i++) {
     // Add the next participant.
     var name = participantList[i];
     if (tag == "#mafiosi"){
       $(tag).append('<' + subtag + '>' + name + '</' + subtag + '>');
     }
-    if (tag == "#participants") {
+    if (tag == "#participants" || tag == "#bystander") {
+    // if (tag == "#participants") {
       // don't allow participants to see / vote on themselves
       if (name.indexOf("(you!)") == -1) {
         $(tag).append('<' + subtag + '>' + name + '</' + subtag + '>');
@@ -131,6 +144,8 @@ var check_phase = function() {
         $("#mafia").hide();
         $("#note").hide();
         $("#vote-note").hide();
+      } else {
+        $("#bystanders").hide();
       }
       $("#narrator").html(resp.victim_name + ", who is a " + resp.victim_type + ", has been eliminated! The " + resp.winner + " have won!");
       $("#stimulus").show();
@@ -164,6 +179,7 @@ var check_phase = function() {
             $("#vote-note").html('These votes are private!');
           } else {
             $("#note").show();
+            $("#bystanders").hide();
           }
 
         } else { // Daytime
@@ -180,6 +196,8 @@ var check_phase = function() {
             $("#vote-note").html('These votes are public!');
           } else {
             $("#note").hide();
+            getModel();
+            $("#bystanders").show();
           }
         }
         // Any time...

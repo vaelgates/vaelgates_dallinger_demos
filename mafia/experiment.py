@@ -11,6 +11,8 @@ from datetime import datetime
 from flask import Blueprint, Response
 from faker import Faker
 fake = Faker()
+from collections import defaultdict
+from joblib import load
 
 
 DOLLARS_PER_HOUR = 5.0
@@ -25,12 +27,17 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         super(MafiaExperiment, self).__init__(session)
         import models
         self.models = models
-        self.skip_instructions = False  # If True, you'll go directly to /waiting
+        # self.skip_instructions = False  # If True, you'll go directly to /waiting
+        self.skip_instructions = True  # If True, you'll go directly to /waiting
         self.experiment_repeats = 1
-        self.num_participants = 10
-        self.num_mafia = 2
+        # self.num_participants = 10
+        self.num_participants = 4
+        # self.num_mafia = 2
+        self.num_mafia = 1
         # Note: can't do * 2.5 here, won't run even if the end result isn't an integer
-        self.initial_recruitment_size = self.num_participants * 3
+        # self.initial_recruitment_size = self.num_participants * 3
+        # self.initial_recruitment_size = self.num_participants * 2
+        self.initial_recruitment_size = self.num_participants
         self.quorum = self.num_participants
         if session:
             self.setup()
@@ -81,8 +88,11 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         # Check for existing Participant Nodes, which indicates experiment
         # has started:
         for network in self.networks():
-            if network.nodes(type=Participant):
+            if len(network.nodes(type=Node)) > 1:
                 return True
+        # for network in self.networks():
+        #     if network.nodes(type=Participant):
+        #         return True
         return False
 
     def record_waiting_room_exit(self, player_id):
@@ -165,8 +175,10 @@ def phase(node_id, switches, was_daytime):
         start_duration = 2 # this line ALSO gets set in experiment.js (hardcoded),
         # this is how long the "this person has been eliminatedTEMPORARY SWITCH BACK!" message gets displayed
         # setTimeout(function () { $("#stimulus").hide(); showExperiment(); }, 2000);
-        day_round_duration = 150
-        night_round_duration = 60
+        # day_round_duration = 150
+        day_round_duration = 60
+        # night_round_duration = 60
+        night_round_duration = 10
         break_duration = 10 # this line ALSO gets set in experiment.js (hardcoded),
         # this is how long the "The game will begin shortly..." message gets displayed
         # setTimeout(function () { $("#stimulus").hide(); get_transmissions(currentNodeId); }, 10000);
@@ -298,6 +310,115 @@ def live_participants(node_id, get_all):
             mimetype='application/json')
     except Exception:
         db.logger.exception('Error fetching live participants')
+        return Response(
+            status=403,
+            mimetype='application/json')
+
+
+@extra_routes.route("/suspected_mafia/<int:node_id>/<int:get_all>",
+                    methods=["GET"])
+def suspected_mafia(node_id, get_all):
+    try:
+        exp = MafiaExperiment(db.session)
+        this_node = Node.query.filter_by(id=node_id).one()
+        infos = Info.query.filter_by().order_by('creation_time')
+        daytime_infos = defaultdict(lambda: defaultdict(list))
+        night = False
+        victims = []
+        num_rounds = 0
+        round_start_time = 0
+        for info in infos:
+            if 'Phase Change to Nighttime' in info.contents:
+                night = True
+                if 'Victim' in info.contents:
+                    victims.append(info.contents.split('- ')[1])
+                else:
+                    victims.append(None)
+                continue
+            elif 'Phase Change to Daytime' in info.contents:
+                if night:
+                    night = False
+                    num_rounds += 1
+                    round_start_time = info.creation_time
+                continue
+            if not night:
+                if info.type == 'vote':
+                    voter, votee = info.contents.split(': ')
+                    daytime_infos[voter][num_rounds].append((votee, (info.creation_time - round_start_time).total_seconds()))
+                else:
+                    texter, text = info.contents.split(': ')
+                    daytime_infos[texter][num_rounds].append((len(text), (info.creation_time - round_start_time).total_seconds()))
+        nodes = Node.query.filter_by(network_id=this_node.network_id,
+                                     property2='True').all()
+        participants = [node.property1 for node in nodes]
+        [daytime_infos[participant][round] for participant in participants for round in range(1, num_rounds)]
+        features = defaultdict(list)
+        for participant in daytime_infos:
+            prop_round_votes = 0.
+            prop_round_majority_votes = 0.
+            prop_round_texts_before_votes = 0.
+            prop_round_texts = 0.
+            mean_time_votes = 0.
+            mean_time_texts = 0.
+            mean_num_texts = 0.
+            mean_len_texts = 0.
+            for round in daytime_infos[participant]:
+                found_text = False
+                for i, act in enumerate(daytime_infos[participant][round]):
+                    if type(act[0]) == int:
+                        if i == 0:
+                            prop_round_texts_before_votes += 1
+                        if not found_text:
+                            prop_round_texts += 1
+                            found_text = True
+                        mean_num_texts += 1
+                        mean_len_texts += act[0]
+                        mean_time_texts += act[1]
+                    elif type(act[0]) == str:
+                        prop_round_votes += 1
+                        if act[0] == victims[round]:
+                            prop_round_majority_votes += 1
+                        mean_time_votes += act[1]
+            features[participant].append(prop_round_votes / (num_rounds - 1))
+            # if prop_round_votes:
+            #     features[participant].append(prop_round_majority_votes / prop_round_votes)
+            # else:
+            #     features[participant].append(None)
+            features[participant].append(prop_round_majority_votes / (num_rounds - 1))
+            # if prop_round_votes:
+            #     features[participant].append(prop_round_texts_before_votes / prop_round_votes)
+            # else:
+            #     features[participant].append(None)
+            features[participant].append(prop_round_texts_before_votes / (num_rounds - 1))
+            features[participant].append(prop_round_texts / (num_rounds - 1))
+            # if prop_round_votes:
+            #     features[participant].append(mean_time_votes / prop_round_votes)
+            # else:
+            #     features[participant].append(None)
+            features[participant].append(mean_time_votes / (num_rounds - 1))
+            # if prop_round_texts:
+            #     features[participant].append(mean_time_texts / prop_round_texts)
+            # else:
+            #     features[participant].append(None)
+            features[participant].append(mean_time_texts / (num_rounds - 1))
+            features[participant].append(mean_num_texts / (num_rounds - 1))
+            if mean_num_texts:
+                features[participant].append(mean_len_texts / mean_num_texts)
+            else:
+                features[participant].append(0.)
+        participants = list(features.values())
+
+        model = load('mafia_model.joblib')
+        probs = model.predict_proba(list(features.values()))
+        participants = [[list(features.keys())[i], mafia_prob] for i, (mafia_prob, _) in enumerate(probs)]
+        exp.save()
+
+        return Response(
+            response=json.dumps({'participants': participants}),
+            status=200,
+            mimetype='application/json')
+    except Exception:
+        db.logger.exception('Error fetching suspected mafia')
         return Response(
             status=403,
             mimetype='application/json')
