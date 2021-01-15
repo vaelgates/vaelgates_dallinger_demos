@@ -1,0 +1,76 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    <div class="main_div">
+        <h1>Comprehension Questions</h1>
+
+        <hr>
+
+          <div class="row question">
+            <div class="col-md-8">
+                My partner and I will take turns on each round, and I will go first.
+            </div>
+            <div class="col-md-4">
+              <select id="paradigmQ" name="paradigmQ">
+                <option value="2">Select one</option>
+                <option value="1">True</option>
+                <option value="0">False</option>
+              </select>
+            </div>
+          </div>
+          <br>
+        <div class="row question">
+            <div class="col-md-8">
+              <!-- Only I, not my partner, will know the goal pattern.-->
+              Both I and my partner will know the goal pattern.
+            </div>
+            <div class="col-md-4">
+              <select id="knowgoalQ" name="knowgoalQ">
+                <option value="2">Select one</option>
+                <option value="1">True</option>
+                <option value="0">False</option>
+              </select>
+            </div>
+          </div>
+          <br>
+          <div class="row question">
+            <div class="col-md-8">
+                I will be playing with a different partner every round.
+            </div>
+            <div class="col-md-4">
+              <select id="diffpartnerQ" name="diffpartnerQ">
+                <option value="2">Select one</option>
+                <option value="1">True</option>
+                <option value="0">False</option>
+              </select>
+            </div>
+          </div>
+          <br>
+            <div class="row">
+                <div class="col-xs-10"></div>
+                <div class="col-xs-2">
+                    <button type="button" class="btn btn-success btn-lg" id="go-to-experiment">Begin</button>
+                    <!--onClick="dallinger.allowExit(); dallinger.goToPage('exp');"-->
+                </div>
+            </div>
+            <hr>
+         <div class="tryagain">
+            <div class="row">
+                <div class="col-md-8">
+                <p> You can't advance unless you correctly answer all the questions. If you 
+                don't remember, click here to return to the Instructions page: </p>
+                 </div>
+                <div class="col-xs-2">
+                    <button type="button" class="btn btn-success" onClick="dallinger.allowExit(); dallinger.goToPage('instructions-1');"> Instructions</button>
+                </div>
+            </div>
+        </div>
+        </div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        dallinger.createParticipant();
+    </script>
+{% endblock %}
