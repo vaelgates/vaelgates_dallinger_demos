@@ -29,6 +29,5 @@ dyno_type = standard-2x
 num_dynos_web = 2
 num_dynos_worker = 2
 host = 0.0.0.0
-notification_url = None
 clock_on = false
 logfile = -
