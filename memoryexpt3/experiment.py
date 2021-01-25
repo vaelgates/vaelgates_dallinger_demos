@@ -55,7 +55,7 @@ def extra_parameters():
 class CoordinationChatroom(Experiment):
     """Define the structure of the experiment."""
 
-    channel = 'memoryexpt2_ctrl'
+    channel = 'memoryexpt3_ctrl'
 
     def __init__(self, session):
         """Initialize the experiment."""
@@ -156,15 +156,15 @@ class CoordinationChatroom(Experiment):
                 self.publish(msg)
 
     def publish(self, msg):
-        """Publish a message to all memoryexpt2 clients"""
-        redis_conn.publish('memoryexpt2', json.dumps(msg))
+        """Publish a message to all memoryexpt3 clients"""
+        redis_conn.publish('memoryexpt3', json.dumps(msg))
 
     def send(self, raw_message):
         """Socket interface; point of entry for incoming messages.
 
         param raw_message is a string with a channel prefix, for example:
 
-            'memoryexpt2_ctrl:{"type":"connect","player_id":1}'
+            'memoryexpt3_ctrl:{"type":"connect","player_id":1}'
         """
         mapping = {
             'connect': self.handle_connect,

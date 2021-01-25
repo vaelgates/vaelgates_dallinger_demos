@@ -404,8 +404,8 @@
     function startSocket(playerID) {
         var socketSettings = {
             "endpoint": "chat",
-            "broadcast": "memoryexpt2",
-            "control": "memoryexpt2_ctrl",
+            "broadcast": "memoryexpt3",
+            "control": "memoryexpt3_ctrl",
         };
         var socket = pubsub.Socket(socketSettings);
         socket.open().done(
