@@ -4,9 +4,9 @@ auto_recruit = true
 group_name = "JuneMemoryTest"
 qualification_blacklist = "JuneMemoryTest"
 assign_qualifications = true
-mexp_topology = karateclub
-mexp_turn_type = free
-mexp_transmission_mode = random
+mexp_topology = collaborative
+mexp_turn_type = random_turns
+mexp_transmission_mode = promiscuous
 mexp_words_aloud = true
 
 [MTurk]
@@ -33,6 +33,5 @@ num_dynos_web = 2
 num_dynos_worker = 2
 host = 0.0.0.0
 clock_on = true
-notification_url = None
 logfile = -
 threads = 1

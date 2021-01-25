@@ -1,1 +1,37 @@
+[Experiment]
+mode = sandbox
+auto_recruit = true
+group_name = "MemoryTestAug2020"
+qualification_blacklist = "MemoryTestAug2020"
+assign_qualifications = true
+mexp_topology = collaborative
+mexp_turn_type = random_turns
+mexp_transmission_mode = promiscuous
+mexp_words_aloud = true
+
+[MTurk]
+title = Memory test
+description = Recall a list of words.
+keywords = Memory, wordlist
+base_payment = 1.00
+lifetime = 1
+duration = 1.00
+us_only = true
+approve_requirement = 95
 contact_email_on_error = vgates@berkeley.edu
+ad_group = Memory
+organization_name = UC Berkeley
+browser_exclude_rule = MSIE, mobile, tablet
+
+[Database]
+database_url = postgresql://postgres@localhost/dallinger
+database_size = standard-0
+
+[Server]
+dyno_type = standard-2x
+num_dynos_web = 2
+num_dynos_worker = 2
+host = 0.0.0.0
+clock_on = true
+logfile = -
+threads = 1
