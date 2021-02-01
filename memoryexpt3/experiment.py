@@ -9,6 +9,7 @@ import dallinger as dlgr
 # from dallinger.heroku.worker import conn as redis
 from dallinger.db import redis_conn
 from dallinger.models import Node
+from dallinger.models import Participant
 from dallinger.nodes import Source
 from dallinger.experiment import Experiment
 from . import bonuses
@@ -92,7 +93,7 @@ class CoordinationChatroom(Experiment):
         ]
 
     def get_participant(self, player_id):
-        return self.session.query(dlgr.models.Participant).get(player_id)
+        return self.session.query(Participant).get(player_id)
 
     def record_waiting_room_exit(self, player_id):
         bonus = bonuses.Bonus(self.get_participant(player_id))
