@@ -27,7 +27,7 @@ class Bonus(object):
             )
         except (TypeError, ValueError):
             # just in case something went wrong saving wait room end time
-            logger.info("Falling back to particant end time!")
+            logger.info("Falling back to participant end time!")
             end_waiting_room = self.participant.end_time
 
         t = end_waiting_room - self.participant.creation_time

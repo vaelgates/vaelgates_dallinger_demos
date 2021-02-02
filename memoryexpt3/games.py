@@ -10,7 +10,7 @@ class Turn(object):
 
     def __init__(self):
         self.start = time.time()
-        self.timeout_secs = 5
+        self.timeout_secs = 10
 
     @property
     def is_expired(self):
