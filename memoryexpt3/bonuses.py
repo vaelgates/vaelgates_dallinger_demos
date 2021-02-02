@@ -11,7 +11,7 @@ class Bonus(object):
     """Calculate bonuses for a participant.
     """
 
-    dollars_per_hour_for_waiting = 5.0
+    dollars_per_hour_for_waiting = 7.0
     dollars_per_word = .015 #.005
 
     def __init__(self, participant):
