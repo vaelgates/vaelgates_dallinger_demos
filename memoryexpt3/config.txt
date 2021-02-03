@@ -1,8 +1,8 @@
 [Experiment]
 mode = sandbox
 auto_recruit = true
-group_name = "MemoryTestAug2020"
-qualification_blacklist = "MemoryTestAug2020"
+group_name = "MemoryTest3"
+qualification_blacklist = "MemoryTest3"
 assign_qualifications = true
 mexp_topology = collaborative
 mexp_turn_type = random_turns
@@ -13,14 +13,14 @@ mexp_words_aloud = true
 title = Memory test
 description = Recall a list of words.
 keywords = Memory, wordlist
-base_payment = 0.50
+base_payment = 0.60
 lifetime = 1
 duration = 1.00
 us_only = true
 approve_requirement = 95
-contact_email_on_error = vgates@berkeley.edu
+contact_email_on_error = cocosci-lab@princeton.edu
 ad_group = Memory
-organization_name = UC Berkeley
+organization_name = Princeton University
 browser_exclude_rule = MSIE, mobile, tablet
 
 [Database]

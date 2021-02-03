@@ -6,8 +6,8 @@
     var currentPlayerId;
     var FILLER_TASK_DURATION_MSECS = 30000;
     var WORD_DISPLAY_DURATION_MSECS = 2000;
-    // var FILLER_TASK_DURATION_MSECS = 3000; // for testing, MONICA
-    // var WORD_DISPLAY_DURATION_MSECS = 1000; // for testing, MONICA
+    // var FILLER_TASK_DURATION_MSECS = 3000; // for testing
+    // var WORD_DISPLAY_DURATION_MSECS = 1000; // for testing
 
     var uniqueWords = {
         _words: [],
