@@ -3,8 +3,21 @@
 (function ($, dallinger) {
 
     var TEST_PHRASE = "The cat jumps over the box";
+    var ZOOM_CODE = "zoomcode"
 
     $(document).ready(function() {
+      // Proceed to the instructions_1.
+        $("#go-to-instructions_1").click(function() {
+            dallinger.allowExit();
+            dallinger.goToPage("instructions_1");
+        });
+
+        // Proceed to instructions_2
+        $("#go-to-instructions_2").click(function() {
+            dallinger.allowExit();
+            dallinger.goToPage("instructions_2");
+        });
+
         // Proceed to the waiting room.
         $("#go-to-waiting-room").click(function() {
             dallinger.allowExit();
@@ -25,12 +38,30 @@
             score = similarity(TEST_PHRASE, heardAs);
             if (score >= 0.75) {
                 result = '<div class="alert alert-success" role="alert">Everything seems to work. You can go ahead with the experiment.</div>';
-                $("#go-to-waiting-room")[0].disabled = false;
+                $("#go-to-instructions_1")[0].disabled = false;
             } else {
 
                 result = '<div class="alert alert-danger role="alert">Either sound does not work, or quality was too bad to understand the phrase. Please fix your sound to continue.</div>';
             }
             $('#sound-test-result').html(result);
+        });
+
+        // Open Zoom link
+        $("#open-zoom-link").click(function() {
+            window.open('https://berkeley.zoom.us/j/98488654288')
+        });
+
+        $('#compare-zoom-code').click(function () {
+            var seenZoomCode = $('#seen-zoom-code').val();
+            score = similarity(ZOOM_CODE, seenZoomCode);
+            if (score >= 0.90) {
+                result = '<div class="alert alert-success" role="alert">Everything seems to work. You can go ahead with the experiment.</div>';
+                $("#go-to-instructions_2")[0].disabled = false;
+            } else {
+
+                result = '<div class="alert alert-danger role="alert">Error. Please try again.</div>';
+            }
+            $('#zoom-code-result').html(result);
         });
 
     });

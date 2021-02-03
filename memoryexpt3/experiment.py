@@ -37,13 +37,28 @@ def serve_game():
     return flask.render_template("experiment.html")
 
 
-@extra_routes.route("/instructions")
-def serve_instructions():
+@extra_routes.route("/instructions_0")
+def serve_instructions_0():
     """Render the instructions as a Flask template, so we can include
     interpolated values from the Experiment.
     """
-    return flask.render_template("instructions.html")
+    return flask.render_template("instructions_0.html")
 
+
+@extra_routes.route("/instructions_1")
+def serve_instructions_1():
+    """Render the instructions as a Flask template, so we can include
+    interpolated values from the Experiment.
+    """
+    return flask.render_template("instructions_1.html")
+
+
+@extra_routes.route("/instructions_2")
+def serve_instructions_2():
+    """Render the instructions as a Flask template, so we can include
+    interpolated values from the Experiment.
+    """
+    return flask.render_template("instructions_2.html")
 
 def extra_parameters():
     config = dlgr.config.get_config()

@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    <div class="main_div">
+        <h1>Instructions</h1>
+        <hr>
+       <h3>Open Zoom</h3>
+        <p>
+            Please click the button to open Zoom.
+        </p>
+        <button type="button" id="open-zoom-link" class="btn btn-lg btn-primary">Open Zoom</button>
+        <br>
+        <br>
+        <p><b>Leave Zoom open throughout the experiment. Feel free to chat with your fellow participants
+        before the experiment starts.</b> After the experiment starts, please pay attention to the experiment.</p>
+        <br>
+        <p> To confirm you are in the correct Zoom room, please paste the code that is screenshared.</p>
+        <input type="text" id="seen-zoom-code" size="60" />
+        <button type="button" id="compare-zoom-code" class="btn btn-lg btn-primary">Compare</button>
+        <br>
+        <br>
+        <div id="zoom-code-result">
+        </div>
+        <br>
+        <hr>
+        <div class="row">
+            <div class="col-xs-10"></div>
+            <div class="col-xs-2">
+                <button type="button" id="go-to-instructions_2" class="btn btn-success btn-lg"
+                disabled> Next </button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block libs %}
+    {{ super() }}
+    <script src="/static/scripts/instructions.js" type="text/javascript"> </script>
+{% endblock %}

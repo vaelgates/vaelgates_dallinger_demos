@@ -7,9 +7,9 @@
             dallinger.allowExit();
             self.close();
         },
-        instructions: function () {
+        instructions_0: function () {
             dallinger.allowExit();
-            dallinger.goToPage("instructions");
+            dallinger.goToPage("instructions_0");
         },
     };
 
@@ -21,7 +21,7 @@
 
         // Consent to the experiment.
         $("#consent").click(function() {
-            go.instructions();
+            go.instructions_0();
         });
 
         // Do not consent to the experiment.
