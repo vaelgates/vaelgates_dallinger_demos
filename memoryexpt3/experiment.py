@@ -253,7 +253,7 @@ class CoordinationChatroom(Experiment):
         # calculate participation_bonus on top of base pay (if a participant was NOT overrecruited)
         participation_bonus = 0.00
         if participant.property1 is not None:
-            participation_bonus = 2.00
+            participation_bonus = 1.90
 
         # keep to two decimal points otherwise doesn't work
         return round(bonus.total + participation_bonus, 2)
