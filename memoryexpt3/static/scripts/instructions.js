@@ -1,6 +1,6 @@
-/*global $, dallinger */
+/*global $, dallinger, settings*/
 
-(function ($, dallinger) {
+(function ($, dallinger, settings) {
 
     var TEST_PHRASE = "The cat jumps over the box";
     var ZOOM_CODE = "zoomcode"
@@ -48,7 +48,19 @@
 
         // Open Zoom link
         $("#open-zoom-link").click(function() {
-            window.open('https://berkeley.zoom.us/j/98488654288')
+            if (settings.col_1) {
+                console.log('Now in zoomroom col_1');
+                window.open('https://us04web.zoom.us/wc/join/79397293864');
+            } else if (settings.col_2) {
+                console.log('Now in zoomroom col_2');
+                window.open('https://us04web.zoom.us/wc/join/79397293864');
+            } else if (settings.nom_1) {
+                console.log('Now in zoomroom nom_1');
+                window.open('https://us04web.zoom.us/wc/join/79397293864');
+            } else if (settings.nom_2) {
+                console.log('Now in zoomroom nom_2');
+                window.open('https://us04web.zoom.us/wc/join/79397293864');
+            }
         });
 
         $('#compare-zoom-code').click(function () {
@@ -107,4 +119,4 @@
         return costs[s2.length];
     }
 
-}($, dallinger));
+}($, dallinger, settings));

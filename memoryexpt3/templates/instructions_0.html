@@ -1,5 +1,16 @@
 {% extends "layout.html" %}
 
+{% block head %}
+<script type="text/javascript">
+    // Parameters
+    settings = {};
+    settings.col_1 = {% if experiment.col_1 %}true{% else %}false{% endif %};
+    settings.col_2 = {% if experiment.col_2 %}true{% else %}false{% endif %};
+    settings.nom_1 = {% if experiment.nom_1 %}true{% else %}false{% endif %};
+    settings.nom_2 = {% if experiment.nom_2 %}true{% else %}false{% endif %};
+</script>
+{% endblock %}
+
 {% block body %}
     <div class="main_div">
         <h1>Instructions</h1>

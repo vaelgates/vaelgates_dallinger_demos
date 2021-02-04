@@ -5,6 +5,7 @@ group_name = "MemoryTest3"
 qualification_blacklist = "MemoryTest3"
 assign_qualifications = true
 mexp_topology = collaborative
+mexp_zoomroom = col_1
 mexp_turn_type = random_turns
 mexp_transmission_mode = promiscuous
 mexp_words_aloud = true

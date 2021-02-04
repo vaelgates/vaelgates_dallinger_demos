@@ -36,28 +36,16 @@ def serve_game():
     """
     return flask.render_template("experiment.html")
 
-
 @extra_routes.route("/instructions_0")
 def serve_instructions_0():
-    """Render the instructions as a Flask template, so we can include
-    interpolated values from the Experiment.
-    """
     return flask.render_template("instructions_0.html")
-
 
 @extra_routes.route("/instructions_1")
 def serve_instructions_1():
-    """Render the instructions as a Flask template, so we can include
-    interpolated values from the Experiment.
-    """
     return flask.render_template("instructions_1.html")
-
 
 @extra_routes.route("/instructions_2")
 def serve_instructions_2():
-    """Render the instructions as a Flask template, so we can include
-    interpolated values from the Experiment.
-    """
     return flask.render_template("instructions_2.html")
 
 def extra_parameters():
@@ -66,6 +54,7 @@ def extra_parameters():
     config.register('mexp_turn_type', six.text_type, [], False)
     config.register('mexp_transmission_mode', six.text_type, [], False)
     config.register('mexp_words_aloud', bool, [], False)
+    config.register('mexp_zoomroom', six.text_type, [], False)
 
 
 class CoordinationChatroom(Experiment):
@@ -93,6 +82,22 @@ class CoordinationChatroom(Experiment):
         )
         logger.info('Using "{}" turns with "{}" transmitter.'.format(
             self.game.nickname, self.transmitter.nickname
+        ))
+        zoomroom = config.get(u'mexp_zoomroom', u'col_1')
+        assert not (zoomroom not in {u'col_1', u'col_2', u'nom_1', u'nom_2'}), \
+            "Choose a zoomroom in config.txt: 'col_1', 'col_2', 'nom_1', or 'nom_2'"
+        if zoomroom == u'col_1' or zoomroom == u'col_2':
+            assert self.topology.nickname == u'collaborative', "Choose a zoomroom that matches topology in config.txt"
+        if zoomroom == u'nom_1' or zoomroom == u'nom_2':
+            assert self.topology.nickname == u'nominal', "Choose a zoomroom that matches topology in config.txt"
+        # vaelgates: currently not using the network topologies, but if we were, change the above to
+        # `assert not self.topology.nickname == nominal` & `assert not self.topology.nickname == 'collaborative'` respectively
+        self.col_1 = (zoomroom == 'col_1')
+        self.col_2 = (zoomroom == 'col_2')
+        self.nom_1 = (zoomroom == 'nom_1')
+        self.nom_2 = (zoomroom == 'nom_2')
+        logger.info('Using Zoom Room "{}".'.format(
+            zoomroom
         ))
         self.enforce_turns = self.game.enforce_turns  # Configures front-end
         self.models = models
