@@ -36,3 +36,6 @@ host = 0.0.0.0
 clock_on = true
 logfile = -
 threads = 1
+
+[Heroku]
+heroku_python_version = 3.7.9
