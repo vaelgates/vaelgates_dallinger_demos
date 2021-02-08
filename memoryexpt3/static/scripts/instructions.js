@@ -3,7 +3,7 @@
 (function ($, dallinger, settings) {
 
     var TEST_PHRASE = "The cat jumps over the box";
-    var ZOOM_CODE = "zoomcode"
+    var ZOOM_CODE = "zoomhere"
 
     $(document).ready(function() {
       // Proceed to the instructions_1.
@@ -66,7 +66,7 @@
         $('#compare-zoom-code').click(function () {
             var seenZoomCode = $('#seen-zoom-code').val();
             score = similarity(ZOOM_CODE, seenZoomCode);
-            if (score >= 0.90) {
+            if (score >= 0.99) {
                 result = '<div class="alert alert-success" role="alert">Everything seems to work. You can go ahead with the experiment.</div>';
                 $("#go-to-instructions_2")[0].disabled = false;
             } else {
