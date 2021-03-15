@@ -78,7 +78,6 @@ class CoordinationChatroom(dlgr.experiments.Experiment):
             self.game.nickname, self.transmitter.nickname
         ))
         self.enforce_turns = self.game.enforce_turns  # Configures front-end
-        self.models = models
         self.q = query.Query()
         self.known_classes["Fillerans"] = models.Fillerans
         if session:
