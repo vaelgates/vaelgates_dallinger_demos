@@ -100,7 +100,6 @@ class CoordinationChatroom(Experiment):
             zoomroom
         ))
         self.enforce_turns = self.game.enforce_turns  # Configures front-end
-        self.models = models
         self.q = query.Query()
         self.known_classes["Fillerans"] = models.Fillerans
         if session:
