@@ -1,8 +1,8 @@
 [Experiment]
 mode = sandbox
 auto_recruit = true
-group_name = "mafiaexpt"
-qualification_blacklist = "mafiaexpt"
+group_name = mafiaexpt
+qualification_blacklist = mafiaexpt
 assign_qualifications = true
 
 [MTurk]
