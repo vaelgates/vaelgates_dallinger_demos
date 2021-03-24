@@ -1,8 +1,8 @@
 [Experiment]
 mode = sandbox
 auto_recruit = true
-group_name = "MemoryTest3"
-qualification_blacklist = "MemoryTest3"
+group_name = MemoryTest3
+qualification_blacklist = MemoryTest3
 assign_qualifications = true
 mexp_topology = collaborative
 mexp_zoomroom = col_1
