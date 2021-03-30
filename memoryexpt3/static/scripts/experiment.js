@@ -419,7 +419,7 @@
         );
         return socket;
     }
-    // Create the agent.
+    // Create the agent, then show the word list, then filler task
     function startPlayer() {
         dallinger.createAgent().done(function (resp) {
             currentNodeId = resp.node.id;
