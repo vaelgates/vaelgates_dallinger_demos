@@ -68,7 +68,7 @@ class CoordinationChatroom(Experiment):
         config = dlgr.config.get_config()
         self.experiment_repeats = 1
         self.num_participants = 1 #55 #55 #140 below
-        self.initial_recruitment_size = self.num_participants #*2 # *3 #note: can't do *2.5 here, won't run even if the end result is an integer
+        self.initial_recruitment_size = self.num_participants *2 # *3 #note: can't do *2.5 here, won't run even if the end result is an integer
         self.quorum = self.num_participants  # quorum is read by waiting room
         self.words_aloud = config.get(u'mexp_words_aloud', False)
         self.topology = topologies.by_name(
@@ -301,6 +301,19 @@ class CoordinationChatroom(Experiment):
         except exc.OperationalError as e:
             e.orig = TransactionRollbackError()
             raise e
+
+    def is_overrecruited(self, waiting_count):
+        """waiting_count will exclude participants who have returned the HIT,
+        and we don't want to exclude them, because we never want to add a new
+        participant once the experiment has started.
+        """
+        # Default implementation:
+        # if not self.quorum:
+        #     return False
+        # return waiting_count > self.quorum
+        # We want to count _everyone_:
+        our_waiting_count = Participant.query.count()
+        return our_waiting_count > self.quorum
 
 
 class FreeRecallListSource(Source):
