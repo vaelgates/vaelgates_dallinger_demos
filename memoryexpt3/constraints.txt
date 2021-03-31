@@ -4,13 +4,15 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with sha: d0bfb8e6474319a7832980a687befbb2
+# Compiled from a requirement.txt file with sha: ff1466dea28cc1b87370f19108e389af
 #
+-e git+git://github.com/Dallinger/Dallinger.git@issues/2709-overrecruitment-bug#egg=dallinger
+    # via -r requirements.txt
 apscheduler==3.7.0
     # via dallinger
-boto3==1.17.33
+boto3==1.17.41
     # via dallinger
-botocore==1.20.33
+botocore==1.20.41
     # via
     #   boto3
     #   s3transfer
@@ -27,9 +29,7 @@ click==7.1.2
     #   dallinger
     #   flask
     #   rq
-dallinger==7.1.0
-    # via -r requirements.txt
-faker==6.6.2
+faker==7.0.1
     # via dallinger
 flask-crossdomain==0.1
     # via dallinger
@@ -60,7 +60,7 @@ greenlet==1.0.0
     #   dallinger
     #   gevent
     #   sqlalchemy
-gunicorn==20.0.4
+gunicorn==20.1.0
     # via dallinger
 idna==2.10
     # via requests
@@ -110,7 +110,7 @@ redis==3.5.3
     #   rq
 requests==2.25.1
     # via dallinger
-rq==1.7.0
+rq==1.8.0
     # via dallinger
 s3transfer==0.3.6
     # via boto3
@@ -124,7 +124,7 @@ six==1.15.0
     #   sqlalchemy-postgres-copy
 sqlalchemy-postgres-copy==0.5.0
     # via dallinger
-sqlalchemy==1.4.2
+sqlalchemy==1.4.4
     # via
     #   dallinger
     #   sqlalchemy-postgres-copy
