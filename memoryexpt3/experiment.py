@@ -302,18 +302,23 @@ class CoordinationChatroom(Experiment):
             e.orig = TransactionRollbackError()
             raise e
 
+    def _experiment_has_started(self):
+        """If we have any Nodes with Participants, we've started."""
+        return bool(
+            self.session.query(Node).filter(Node.participant.has()).count()
+        )
+
     def is_overrecruited(self, waiting_count):
-        """waiting_count will exclude participants who have returned the HIT,
-        and we don't want to exclude them, because we never want to add a new
-        participant once the experiment has started.
+        """Once the experiment has started, we're overrecruited by definition,
+        because we never want to bring someone in after that start.
         """
-        # Default implementation:
-        # if not self.quorum:
-        #     return False
-        # return waiting_count > self.quorum
-        # We want to count _everyone_:
-        our_waiting_count = Participant.query.count()
-        return our_waiting_count > self.quorum
+        if not self.quorum:
+            return False
+
+        if self._experiment_has_started():
+            return True
+
+        return super(CoordinationChatroom, self).is_overrecruited(waiting_count)
 
 
 class FreeRecallListSource(Source):
