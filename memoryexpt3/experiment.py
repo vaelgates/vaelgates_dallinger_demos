@@ -254,13 +254,8 @@ class CoordinationChatroom(Experiment):
             bonus.for_waiting, bonus.for_words)
         )
 
-        # calculate participation_bonus on top of base pay (if a participant was NOT overrecruited)
-        participation_bonus = 0.00
-        if participant.property1 is not None:
-            participation_bonus = 1.50
-
         # keep to two decimal points otherwise doesn't work
-        return round(bonus.total + participation_bonus, 2)
+        return round(bonus.total, 2)
 
     def add_node_to_network(self, node, network):
         """Add node to the chain and receive transmissions."""
