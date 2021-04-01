@@ -1,5 +1,4 @@
 [Experiment]
-mode = sandbox
 auto_recruit = true
 group_name = MemoryTest3
 qualification_blacklist = MemoryTest3
