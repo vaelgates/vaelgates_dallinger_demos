@@ -449,7 +449,7 @@
             showFillerTask();
         } else {
             // Show the next word.
-            $("#wordlist").html(wl.pop());
+            $("#wordlist").html(wl.shift());
             setTimeout(
                 function() {
                     showWordList(wl);
