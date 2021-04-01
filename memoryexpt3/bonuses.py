@@ -26,13 +26,12 @@ class Bonus(object):
                 self.participant.property1, DATETIME_FORMAT
             )
         except (TypeError, ValueError):
-            # just in case something went wrong saving wait room end time
-            logger.info("Falling back to participant end time!")
-            end_waiting_room = self.participant.end_time
+            logger.info("Overrecruited participant... zero waiting time.")
+            return 0
 
         t = end_waiting_room - self.participant.creation_time
 
-        return t.total_seconds()
+        return max(0, t.total_seconds())
 
     @property
     def word_count(self):
@@ -40,6 +39,17 @@ class Bonus(object):
             return int(self.participant.property2)
 
         return 0
+
+    @property
+    def for_participation(self):
+        """calculate participation_bonus on top of base pay
+        (if a participant was NOT overrecruited)
+        """
+        participation_bonus = 0.00
+        if self.participant.property1 is not None:
+            participation_bonus = 1.50
+
+        return participation_bonus
 
     @property
     def for_waiting(self):
@@ -61,7 +71,7 @@ class Bonus(object):
     @property
     def total(self):
         """Total of all bonus types"""
-        return self.for_waiting + self.for_words
+        return self.for_waiting + self.for_words + self.for_participation
 
     def record_wait_time(self):
         end_waiting_room = datetime.now().strftime(DATETIME_FORMAT)
