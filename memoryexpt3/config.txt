@@ -11,7 +11,7 @@ mexp_transmission_mode = promiscuous
 mexp_words_aloud = true
 
 [MTurk]
-title = Memory test
+title = Memory test ($1.50 bonus upon completion)
 description = Recall a list of words.
 keywords = Memory, wordlist
 base_payment = 0.60
