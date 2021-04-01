@@ -13,9 +13,13 @@ from faker import Faker
 fake = Faker()
 from collections import defaultdict
 from joblib import load
+import json
+import os
+import csv
 
 
-DOLLARS_PER_HOUR = 5.0
+# DOLLARS_PER_HOUR = 5.0
+DOLLARS_PER_HOUR = 7.0
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
 
 
@@ -31,7 +35,7 @@ class MafiaExperiment(dlgr.experiments.Experiment):
         self.skip_instructions = True  # If True, you'll go directly to /waiting
         self.experiment_repeats = 1
         # self.num_participants = 10
-        self.num_participants = 4
+        self.num_participants = 3
         # self.num_mafia = 2
         self.num_mafia = 1
         # Note: can't do * 2.5 here, won't run even if the end result isn't an integer
@@ -327,6 +331,12 @@ def suspected_mafia(node_id, get_all):
         victims = []
         num_rounds = 0
         round_start_time = 0
+        nodes = Node.query.filter_by(network_id=this_node.network_id,
+                                     property2='True').all()
+        participants = [node.property1 for node in nodes]
+        type_map = {'bystander': 'bystanders', 'mafioso': 'mafia'}
+        factions = {node.property1: type_map[node.type] for node in nodes}
+        daytime_infos = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
         for info in infos:
             if 'Phase Change to Nighttime' in info.contents:
                 night = True
@@ -343,74 +353,137 @@ def suspected_mafia(node_id, get_all):
                 continue
             if not night:
                 if info.type == 'vote':
-                    voter, votee = info.contents.split(': ')
-                    daytime_infos[voter][num_rounds].append((votee, (info.creation_time - round_start_time).total_seconds()))
+                    # voter, votee = info.contents.split(': ')
+                    # daytime_infos[0][factions[voter]][voter].append((num_rounds, votee, (info.creation_time - round_start_time).total_seconds()))
+                    continue
                 else:
                     texter, text = info.contents.split(': ')
-                    daytime_infos[texter][num_rounds].append((len(text), (info.creation_time - round_start_time).total_seconds()))
-        nodes = Node.query.filter_by(network_id=this_node.network_id,
-                                     property2='True').all()
-        participants = [node.property1 for node in nodes]
-        [daytime_infos[participant][round] for participant in participants for round in range(1, num_rounds)]
-        features = defaultdict(list)
-        for participant in daytime_infos:
-            prop_round_votes = 0.
-            prop_round_majority_votes = 0.
-            prop_round_texts_before_votes = 0.
-            prop_round_texts = 0.
-            mean_time_votes = 0.
-            mean_time_texts = 0.
-            mean_num_texts = 0.
-            mean_len_texts = 0.
-            for round in daytime_infos[participant]:
-                found_text = False
-                for i, act in enumerate(daytime_infos[participant][round]):
-                    if type(act[0]) == int:
-                        if i == 0:
-                            prop_round_texts_before_votes += 1
-                        if not found_text:
-                            prop_round_texts += 1
-                            found_text = True
-                        mean_num_texts += 1
-                        mean_len_texts += act[0]
-                        mean_time_texts += act[1]
-                    elif type(act[0]) == str:
-                        prop_round_votes += 1
-                        if act[0] == victims[round]:
-                            prop_round_majority_votes += 1
-                        mean_time_votes += act[1]
-            features[participant].append(prop_round_votes / (num_rounds - 1))
-            # if prop_round_votes:
-            #     features[participant].append(prop_round_majority_votes / prop_round_votes)
-            # else:
-            #     features[participant].append(None)
-            features[participant].append(prop_round_majority_votes / (num_rounds - 1))
-            # if prop_round_votes:
-            #     features[participant].append(prop_round_texts_before_votes / prop_round_votes)
-            # else:
-            #     features[participant].append(None)
-            features[participant].append(prop_round_texts_before_votes / (num_rounds - 1))
-            features[participant].append(prop_round_texts / (num_rounds - 1))
-            # if prop_round_votes:
-            #     features[participant].append(mean_time_votes / prop_round_votes)
-            # else:
-            #     features[participant].append(None)
-            features[participant].append(mean_time_votes / (num_rounds - 1))
-            # if prop_round_texts:
-            #     features[participant].append(mean_time_texts / prop_round_texts)
-            # else:
-            #     features[participant].append(None)
-            features[participant].append(mean_time_texts / (num_rounds - 1))
-            features[participant].append(mean_num_texts / (num_rounds - 1))
-            if mean_num_texts:
-                features[participant].append(mean_len_texts / mean_num_texts)
-            else:
-                features[participant].append(0.)
-        participants = list(features.values())
-
-        model = load('mafia_model.joblib')
-        probs = model.predict_proba(list(features.values()))
-        participants = [[list(features.keys())[i], mafia_prob] for i, (mafia_prob, _) in enumerate(probs)]
+                    daytime_infos[0][factions[texter]][texter].append((num_rounds, text, (info.creation_time - round_start_time).total_seconds()))
+        # cwd = os.getcwd()
+        # print(cwd)
+        # db.logger.exception('cwd')
+        # db.logger.exception(cwd)
+        with open('mafia/daytime_infos.json', 'w') as daytime_infos_file:
+            json.dump(daytime_infos, daytime_infos_file)
+        # model = 'mafia_other_time_2_mes_tiny_uncased_1000/'
+        os.system("export BERT_BASE_DIR=uncased_L-2_H-128_A-2")
+        os.system("export DATA_DIR=mafia")
+        os.system("python3 run_classifier.py \
+  --task_name=PredictMafia \
+  --do_train=false \
+  --do_eval=false \
+  --do_predict=true \
+  --do_lower_case=true \
+  --data_dir=$DATA_DIR \
+  --vocab_file=$BERT_BASE_DIR/vocab.txt \
+  --bert_config_file=$BERT_BASE_DIR/bert_config.json \
+  --max_seq_length=128 \
+  --train_batch_size=32 \
+  --learning_rate=2e-5 \
+  --num_train_epochs=1000.0 \
+  --output_dir=mafia_other_time_2_mes_tiny_uncased_1000/")
+  #       os.system("python3 run_classifier.py \
+  # --task_name=PredictMafia \
+  # --do_train=false \
+  # --do_eval=false \
+  # --do_predict=true \
+  # --do_lower_case=true \
+  # --data_dir=$DATA_DIR \
+  # --vocab_file=$BERT_BASE_DIR/vocab.txt \
+  # --bert_config_file=$BERT_BASE_DIR/bert_config.json \
+  # --max_seq_length=128 \
+  # --train_batch_size=32 \
+  # --learning_rate=2e-5 \
+  # --num_train_epochs=1000.0 \
+  # --output_dir=mafia_other_time_2_mes_tiny_uncased_1000/ 2>&1 | tee $DATA_DIR/predict_mafia")
+        players = [player for group in daytime_infos[game] for player in daytime_infos[game][group]]
+        with open('mafia_other_time_2_mes_tiny_uncased_1000/test_results.tsv') as test_results_file:
+            probs = csv.reader(test_results_file, delimiter='\t')
+            participants = [[players[i], mafia_prob] for i, (mafia_prob, _) in enumerate(probs)]
+        # for info in infos:
+        #     if 'Phase Change to Nighttime' in info.contents:
+        #         night = True
+        #         if 'Victim' in info.contents:
+        #             victims.append(info.contents.split('- ')[1])
+        #         else:
+        #             victims.append(None)
+        #         continue
+        #     elif 'Phase Change to Daytime' in info.contents:
+        #         if night:
+        #             night = False
+        #             num_rounds += 1
+        #             round_start_time = info.creation_time
+        #         continue
+        #     if not night:
+        #         if info.type == 'vote':
+        #             voter, votee = info.contents.split(': ')
+        #             daytime_infos[voter][num_rounds].append((votee, (info.creation_time - round_start_time).total_seconds()))
+        #         else:
+        #             texter, text = info.contents.split(': ')
+        #             daytime_infos[texter][num_rounds].append((len(text), (info.creation_time - round_start_time).total_seconds()))
+        # # nodes = Node.query.filter_by(network_id=this_node.network_id,
+        # #                              property2='True').all()
+        # # participants = [node.property1 for node in nodes]
+        # [daytime_infos[participant][round] for participant in participants for round in range(1, num_rounds)]
+        # features = defaultdict(list)
+        # for participant in daytime_infos:
+        #     prop_round_votes = 0.
+        #     prop_round_majority_votes = 0.
+        #     prop_round_texts_before_votes = 0.
+        #     prop_round_texts = 0.
+        #     mean_time_votes = 0.
+        #     mean_time_texts = 0.
+        #     mean_num_texts = 0.
+        #     mean_len_texts = 0.
+        #     for round in daytime_infos[participant]:
+        #         found_text = False
+        #         for i, act in enumerate(daytime_infos[participant][round]):
+        #             if type(act[0]) == int:
+        #                 if i == 0:
+        #                     prop_round_texts_before_votes += 1
+        #                 if not found_text:
+        #                     prop_round_texts += 1
+        #                     found_text = True
+        #                 mean_num_texts += 1
+        #                 mean_len_texts += act[0]
+        #                 mean_time_texts += act[1]
+        #             elif type(act[0]) == str:
+        #                 prop_round_votes += 1
+        #                 if act[0] == victims[round]:
+        #                     prop_round_majority_votes += 1
+        #                 mean_time_votes += act[1]
+        #     features[participant].append(prop_round_votes / (num_rounds - 1))
+        #     # if prop_round_votes:
+        #     #     features[participant].append(prop_round_majority_votes / prop_round_votes)
+        #     # else:
+        #     #     features[participant].append(None)
+        #     features[participant].append(prop_round_majority_votes / (num_rounds - 1))
+        #     # if prop_round_votes:
+        #     #     features[participant].append(prop_round_texts_before_votes / prop_round_votes)
+        #     # else:
+        #     #     features[participant].append(None)
+        #     features[participant].append(prop_round_texts_before_votes / (num_rounds - 1))
+        #     features[participant].append(prop_round_texts / (num_rounds - 1))
+        #     # if prop_round_votes:
+        #     #     features[participant].append(mean_time_votes / prop_round_votes)
+        #     # else:
+        #     #     features[participant].append(None)
+        #     features[participant].append(mean_time_votes / (num_rounds - 1))
+        #     # if prop_round_texts:
+        #     #     features[participant].append(mean_time_texts / prop_round_texts)
+        #     # else:
+        #     #     features[participant].append(None)
+        #     features[participant].append(mean_time_texts / (num_rounds - 1))
+        #     features[participant].append(mean_num_texts / (num_rounds - 1))
+        #     if mean_num_texts:
+        #         features[participant].append(mean_len_texts / mean_num_texts)
+        #     else:
+        #         features[participant].append(0.)
+        # participants = list(features.values())
+        #
+        # model = load('mafia_model.joblib')
+        # probs = model.predict_proba(list(features.values()))
+        # participants = [[list(features.keys())[i], mafia_prob] for i, (mafia_prob, _) in enumerate(probs)]
         exp.save()
 
         return Response(

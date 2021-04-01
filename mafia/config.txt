@@ -4,6 +4,7 @@ auto_recruit = true
 group_name = mafiaexpt
 qualification_blacklist = mafiaexpt
 assign_qualifications = true
+recruiter = cli
 
 [MTurk]
 title = Mafia game
@@ -14,7 +15,7 @@ lifetime = 4
 duration = 1.00
 us_only = true
 approve_requirement = 95
-contact_email_on_error = vgates@berkeley.edu
+contact_email_on_error = cocosci-lab@princeton.edu
 ad_group = Mafia
 organization_name = UC Berkeley
 browser_exclude_rule = MSIE, mobile, tablet

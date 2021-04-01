@@ -1,3 +1,5 @@
 dallinger
 faker
 joblib
+numpy
+tensorflow

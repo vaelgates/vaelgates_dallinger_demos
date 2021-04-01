@@ -1,0 +1,1 @@
+# Directory for mafia model data
