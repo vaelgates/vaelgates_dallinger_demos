@@ -38,7 +38,7 @@
             score = similarity(TEST_PHRASE, heardAs);
             if (score >= 0.75) {
                 result = '<div class="alert alert-success" role="alert">Everything seems to work. You can go ahead with the experiment.</div>';
-                $("#go-to-instructions_1")[0].disabled = false;
+                $("#go-to-instructions_2")[0].disabled = false;
             } else {
 
                 result = '<div class="alert alert-danger role="alert">Either sound does not work, or quality was too bad to understand the phrase. Please fix your sound to continue.</div>';
