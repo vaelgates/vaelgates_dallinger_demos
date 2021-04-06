@@ -1,5 +1,6 @@
 [Experiment]
 auto_recruit = true
+recruiter=cli
 group_name = MemoryTest3
 qualification_blacklist = MemoryTest3
 assign_qualifications = true
@@ -10,10 +11,10 @@ mexp_transmission_mode = promiscuous
 mexp_words_aloud = true
 
 [MTurk]
-title = Memory test ($1.50 bonus upon completion) (disable adblock to view)
+title = Memory test (disable adblock to view)
 description = Recall a list of words.
 keywords = Memory, wordlist
-base_payment = 0.60
+base_payment = 6.00
 lifetime = 1
 duration = 1.00
 us_only = true

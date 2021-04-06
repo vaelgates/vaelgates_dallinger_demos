@@ -47,7 +47,7 @@ class Bonus(object):
         """
         participation_bonus = 0.00
         if self.participant.property1 is not None:
-            participation_bonus = 1.50
+            participation_bonus = 0.00
 
         return participation_bonus
 
