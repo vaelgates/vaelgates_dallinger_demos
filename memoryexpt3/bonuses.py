@@ -55,9 +55,9 @@ class Bonus(object):
     def for_waiting(self):
         """Bonus based on how long the participant sat in the waiting room.
         """
-        # Cap the bonus for waiting time at 15min (=.25 hours)
+        # Cap the bonus for waiting time at 10min (=.17 hours)
         return min((self.wait_time / 3600) * self.dollars_per_hour_for_waiting,
-                   0.25 * self.dollars_per_hour_for_waiting)
+                   0.17 * self.dollars_per_hour_for_waiting)
 
     @property
     def for_words(self):
